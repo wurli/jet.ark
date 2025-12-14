@@ -33,10 +33,10 @@ client.shell_channel.send(client.session.msg("comm_open", {
 #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 #         s.bind(("127.0.0.1", 0))
 #         return s.getsockname()[1]
-#
+
 # ui_port = get_available_port()
 # ui_address = f"127.0.0.1:{ui_port}"
-#
+
 # # Tell Ark to start the LSP on the given channel
 # client.shell_channel.send(client.session.msg("comm_open", {
 #     "target_name": "positron.ui",
@@ -46,7 +46,6 @@ client.shell_channel.send(client.session.msg("comm_open", {
 
 # ui_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # ui_socket.connect(( "127.0.0.1", ui_port ))
-# s.sendall("{  }")
 
 # Set a prompt which feels a bit more like R
 class RConsole(shell.ZMQTerminalInteractiveShell):
