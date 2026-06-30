@@ -1,43 +1,37 @@
 local M = {}
 
-M.setup = function()
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = "r",
-		group = vim.api.nvim_create_augroup("jet.ark.lsp", { clear = true }),
-		once = true,
-		callback = function()
-			require("jet.core.api").repl({
-				filetype = "r",
-				hidden = true,
-				---@param kernel jet.kernel
-				callback = function(kernel)
-					local ip = "127.0.0.1"
+M.start_ark_lsp = function()
+	local spec = require("jet.ark.config").data.kernelspec_path
+	local inactive = require("jet.core.api").list_kernels({ spec_path = spec, status = { "inactive" } })
+	local connected = require("jet.core.api").list_kernels({ spec_path = spec, status = { "connected" } })
+	local kernel = connected[1] or inactive[1]
 
-					kernel:comm_open("lsp", { ip_address = ip }, {
-						listener = function(res)
-							--TODO: sesms we're getting duplicate messages?
-							-- vim.print(res)
+	kernel:start_lua_client(function(k)
+		-- Prevents starting multiple LSPs on the same kernel
+		if k.comms.lsp then
+			return
+		end
 
-							local port = res.data
-								and res.data.data
-								and res.data.data.params
-								and res.data.data.params.port
+		local ip = "127.0.0.1"
 
-							vim.lsp.config.ark = {
-								cmd = vim.lsp.rpc.connect(ip, port),
-								root_markers = { ".git", ".Rprofile", ".Rproj", "DESCRIPTION" },
-								filetypes = { "r", "R" },
-								root_dir = ".",
-							}
+		k:comm_open("lsp", { ip_address = ip }, {
+			listener = function(res)
+				local port = res.data and res.data.data and res.data.data.params and res.data.data.params.port
 
-							vim.lsp.enable("ark")
-						end,
-					})
-				end,
-			})
-		end,
-	})
+				vim.lsp.config.ark = {
+					cmd = vim.lsp.rpc.connect(ip, port),
+					root_markers = { ".git", ".Rprofile", ".Rproj", "DESCRIPTION" },
+					filetypes = { "r", "R" },
+					root_dir = ".",
+				}
+
+				vim.lsp.enable("ark")
+			end,
+		})
+	end)
 end
+
+M.setup = function() end
 
 return M
 
