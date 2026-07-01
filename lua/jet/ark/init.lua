@@ -20,6 +20,9 @@ M.setup = function(opts)
 	end
 	jet_cfg.default_kernels.r = config.data.kernelspec_path
 
+	-- Register a method for getting the current 'expression' for R files
+	require("jet.core.send.get_code").filetype.r = require("jet.ark.get_code")
+
 	-- Let jet know that Ark is for the 'r' filetype
 	---@param k jet.kernel
 	table.insert(jet_cfg.hooks.on_kernel_init, function(k)

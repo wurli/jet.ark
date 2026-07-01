@@ -15,8 +15,8 @@ M.start_ark_lsp = function()
 		local ip = "127.0.0.1"
 
 		k:comm_open("lsp", { ip_address = ip }, {
-			listener = function(res)
-				local port = res.data and res.data.data and res.data.data.params and res.data.data.params.port
+			listener = function(msg)
+				local port = msg.content.data and msg.content.data.params and msg.content.data.params.port
 
 				vim.lsp.config.ark = {
 					cmd = vim.lsp.rpc.connect(ip, port),
