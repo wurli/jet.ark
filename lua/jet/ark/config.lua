@@ -7,7 +7,6 @@ M.defaults = {
 	ark_argv = {
 		r_args = {}, ---@type string[]
 		startup_file = nil, ---@type string?
-		session_mode = nil, ---@type "console" | "notebook" | "background"
 		no_capture_streams = nil, ---@type boolean?
 		default_repos = nil, ---@type "rstudio" | "posit-ppm" | "none"
 		repos_conf = nil, ---@type string?

@@ -40,6 +40,11 @@ M.generate = function()
 		table.insert(argv, vim.fn.expand(argv_config.startup_file))
 	end
 
+	-- See https://github.com/posit-dev/ark/issues/1311 for why this is needed
+	-- and not configurable.
+	table.insert(argv, "--session-mode")
+	table.insert(argv, "notebook")
+
 	if argv_config.r_args and #argv_config.r_args > 0 then
 		table.insert(argv, "--")
 		for _, arg in ipairs(argv_config.r_args) do
