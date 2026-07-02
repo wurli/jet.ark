@@ -1,29 +1,47 @@
 local M = {}
 
----@return string[]
-M.get_expr = function()
-	print("get_expr")
-	local cur_line = vim.fn.line(".")
-	local txt = vim.fn.getline(cur_line)
+---@param pos jet.send.Pos
+---@return jet.send.Range?
+M.get_expr = function(pos)
+	local txt = vim.api.nvim_buf_get_lines(0, pos.row, pos.row + 1, false)[1]
+
+	-- The given position isn't in the buf
+	if not txt then
+		return
+	end
+
+	-- The given position is in a blank line
 	local col = txt:find("%S")
+
+	if not col then
+		return
+	end
 
 	local node = vim.treesitter.get_node({
 		bufnr = 0,
-		pos = { cur_line - 1, col - 1 },
+		pos = { pos.row, pos.col },
 		ignore_injections = true,
 	})
-	print("here1")
 
 	if node and node:type() == "program" then
-		print("going to child")
 		node = node:child(0)
 	end
-	print("here2")
 
-	local i = 0
+	local max_iterations = 100
+	local curr_iteration = 0
+
 	while node do
-		i = i + 1
-		print("iter " .. i)
+		curr_iteration = curr_iteration + 1
+		if curr_iteration > max_iterations then
+			vim.notify(
+				table.concat({
+					"[Ark] Warning: Maximum iterations reached while traversing the AST.",
+					"Breaking out of possible infinite loop.",
+				}, "\n"),
+				vim.log.levels.WARN
+			)
+			break
+		end
 		local parent = node:parent()
 		if parent and (parent:type() == "program" or parent:type() == "braced_expression") then
 			break
@@ -31,16 +49,19 @@ M.get_expr = function()
 		node = parent
 	end
 
-	local lines = {}
-	if node then
-		local start_row, _, end_row, _ = node:range()
-		for i = start_row, end_row do
-			table.insert(lines, vim.fn.getline(i + 1))
-		end
-		cur_line = end_row
+	if not node then
+		return
 	end
 
-	return lines
+	local start_row, start_col, end_row, end_col = node:range(false)
+
+	return {
+		buf = vim.api.nvim_get_current_buf(),
+		start_row = start_row,
+		start_col = start_col,
+		end_row = end_row,
+		end_col = end_col,
+	}
 end
 
 return M
