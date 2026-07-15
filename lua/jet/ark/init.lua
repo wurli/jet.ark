@@ -64,10 +64,12 @@ M.setup = function(opts)
 
 					if kernel.spec_path == config.data.kernelspec_path then
 						local comm_id = kernel.comms["positron.ui"]
+						---@diagnostic disable-next-line: unnecessary-if
 						if comm_id then
 							kernel:comm_send(
 								comm_id,
-								comm.call_method("setConsoleWidth", { vim.api.nvim_win_get_width(win) })
+								-- Subtract 2 to account for indent added by external clients
+								comm.call_method("setConsoleWidth", { vim.api.nvim_win_get_width(win) - 2 })
 							)
 						end
 					end
