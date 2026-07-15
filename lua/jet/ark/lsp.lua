@@ -1,12 +1,18 @@
 local M = {}
 
-M.start_ark_lsp = function()
-	local spec = require("jet.ark.config").data.kernelspec_path
-	local inactive = require("jet.core.api").list_kernels({ spec_path = spec, status = { "inactive" } })
-	local connected = require("jet.core.api").list_kernels({ spec_path = spec, status = { "connected" } })
-	local kernel = connected[1] or inactive[1]
+---@param kernel? jet.kernel
+M.start_ark_lsp = function(kernel)
+	if not kernel then
+		local spec = require("jet.ark.config").data.kernelspec_path
+		local inactive = require("jet.core.api").list_kernels({ spec_path = spec, status = { "inactive" } })
+		local connected = require("jet.core.api").list_kernels({ spec_path = spec, status = { "connected" } })
+		kernel = connected[1] or inactive[1]
+	end
+
+	assert(kernel, "No Ark kernel found. Please start an Ark kernel first")
 
 	kernel:start_lua_client(function(k)
+		---@diagnostic disable-next-line: unnecessary-if
 		-- Prevents starting multiple LSPs on the same kernel
 		if k.comms.lsp then
 			return
@@ -18,12 +24,12 @@ M.start_ark_lsp = function()
 			listener = function(msg)
 				local port = msg.content.data and msg.content.data.params and msg.content.data.params.port
 
-				vim.lsp.config.ark = {
+				vim.lsp.config("ark", {
 					cmd = vim.lsp.rpc.connect(ip, port),
 					root_markers = { ".git", ".Rprofile", ".Rproj", "DESCRIPTION" },
-					filetypes = { "r", "R" },
+					filetypes = { "r" },
 					root_dir = ".",
-				}
+				})
 
 				vim.lsp.enable("ark")
 			end,

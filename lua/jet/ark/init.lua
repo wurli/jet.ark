@@ -15,6 +15,7 @@ M.setup = function(opts)
 
 	-- Register ark.jet's special kernelspec as the one to use
 	local jet_cfg = require("jet.config").options
+	---@diagnostic disable-next-line: unnecessary-if
 	if jet_cfg.default_kernels.r then
 		vim.notify("[jet.ark] Overriding default R kernel path")
 	end
@@ -41,18 +42,19 @@ M.setup = function(opts)
 		-- `working_directory` and `prompt_state` come through
 		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
 			k:comm_open("positron.ui", {})
+			lsp.start_ark_lsp(k)
 		end
 	end)
 
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),
 		callback = function()
-			local resised_wins = vim.v.event.windows --[[ @as number[] ]]
+			local resized_wins = vim.v.event.windows --[[@as integer[] ]]
 
-			for _, win in ipairs(resised_wins) do
+			for _, win in ipairs(resized_wins) do
 				local buf = vim.api.nvim_win_get_buf(win)
 				if vim.b[buf].jet then
-					local session_id = vim.b[buf].jet.session_id --[[ @as string ]]
+					local session_id = vim.b[buf].jet.session_id --[[@as string]]
 					if not session_id then
 						return
 					end
@@ -104,7 +106,7 @@ M.setup = function(opts)
 		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
 			-- Since the LSP has been stopped we wipe the config, since this
 			-- records the IP and port the prev LSP was running on.
-			vim.lsp.config.ark = {}
+			vim.lsp.config("ark", {})
 			if vim.bo.filetype == "r" then
 				lsp.start_ark_lsp()
 			end
