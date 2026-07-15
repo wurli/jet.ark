@@ -20,7 +20,8 @@ M.get_expr = function(pos)
 	local node = vim.treesitter.get_node({
 		bufnr = 0,
 		pos = { pos.row, pos.col },
-		ignore_injections = true,
+		-- Important, e.g. for getting expressions in markdown code blocks
+		ignore_injections = false,
 	})
 
 	if node and node:type() == "program" then
