@@ -1,0 +1,22 @@
+{
+	"runtime": {
+		"version": "LuaJIT",
+		"requirePattern": [
+			"?/init.lua",
+			"?.lua"
+		]
+	},
+	"workspace": {
+		"library": [
+			"$VIMRUNTIME"
+		],
+		"ignoreDir": [
+			"target",
+			"deps",
+			"debug"
+		],
+		"ignoreGlobs": [
+			"*.log"
+		]
+	}
+}
