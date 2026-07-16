@@ -14,7 +14,7 @@ M.setup = function(opts)
 	----------------------------
 
 	-- Register ark.jet's special kernelspec as the one to use
-	local jet_cfg = require("jet.config").options
+	local jet_cfg = require("jet.core.config").options
 	---@diagnostic disable-next-line: unnecessary-if
 	if jet_cfg.default_kernels.r then
 		vim.notify("[jet.ark] Overriding default R kernel path")
