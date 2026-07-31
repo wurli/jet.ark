@@ -8,7 +8,8 @@
 	},
 	"workspace": {
 		"library": [
-			"$VIMRUNTIME"
+			"$VIMRUNTIME",
+			"$HOME/Repos/jet.nvim/lua"
 		],
 		"ignoreDir": [
 			"target",
