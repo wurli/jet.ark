@@ -11,7 +11,6 @@ M.start_ark_lsp = function(kernel)
 		if k.comms.lsp or lsp_starting then
 			return
 		end
-		print("starting lsp")
 
 		local ip = "127.0.0.1"
 
