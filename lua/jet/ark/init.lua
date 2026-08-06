@@ -37,14 +37,23 @@ M.setup = function(opts)
 	----------------------------
 
 	---@param k jet.kernel
-	table.insert(jet_cfg.hooks.on_lua_client_start, function(k)
+	jet_cfg.hooks.on_lua_client_start.start_ark_lsp = function(k)
 		-- We don't need to open a listener on the UI comm since right now only
 		-- `working_directory` and `prompt_state` come through
 		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
+			-- This tells Ark to listen for ui comm messages, e.g. like
+			-- setConsoleWidth below.
 			k:comm_open("positron.ui", {})
 			lsp.start_ark_lsp(k)
 		end
-	end)
+	end
+
+	jet_cfg.hooks.on_kernel_close.stop_ark_lsp = function(k)
+		if k.metadata.ark_lsp then
+			vim.lsp.enable(k.metadata.ark_lsp, false)
+			vim.lsp.config[k.metadata.ark_lsp] = {}
+		end
+	end
 
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),
