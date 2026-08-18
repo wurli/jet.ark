@@ -292,21 +292,30 @@ class Emitter:
                 self.ensure_alias(result_class, underlying, None)
             result_type = result_class
 
-        param_type = params_class if params_class else "{}"
         comm_channel = f"positron.{self.comm}"
         lines.append("---@param kernel jet.Kernel")
-        lines.append(f"---@param params {param_type}")
+        # When the method takes no params we drop the `params` arg from the
+        # wrapper signature and pass `vim.empty_dict()` internally, so the
+        # payload is serialised as an empty JSON object rather than an array.
+        if params_class:
+            lines.append(f"---@param params {params_class}")
+            params_arg = "params"
+            params_sig = "kernel, params"
+        else:
+            params_arg = "nil"
+            params_sig = "kernel"
+
         if result_type is not None:
             reply_method = "".join(w.capitalize() for w in name.split("_")) + "Reply"
             lines.append(f"---@param callback? fun(res: {result_type})")
-            lines.append(f"M.{name} = function(kernel, params, callback)")
+            lines.append(f"M.{name} = function({params_sig}, callback)")
             lines.append(
-                f'\treturn util.rpc_request(kernel, "{comm_channel}", "{name}", params, "{reply_method}", callback)'
+                f'\treturn util.rpc_request(kernel, "{comm_channel}", "{name}", {params_arg}, "{reply_method}", callback)'
             )
         else:
-            lines.append(f"M.{name} = function(kernel, params)")
+            lines.append(f"M.{name} = function({params_sig})")
             lines.append(
-                f'\treturn util.rpc_request(kernel, "{comm_channel}", "{name}", params)'
+                f'\treturn util.rpc_request(kernel, "{comm_channel}", "{name}", {params_arg})'
             )
         lines.append("end")
 

@@ -44,7 +44,7 @@ M.setup = function(opts)
 			-- setConsoleWidth below.
 			k:comm_open("positron.ui", {})
 			k:comm_open("positron.help", {}, { listener = require("jet.ark.help").listener })
-			-- k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
+			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
 			lsp.start_ark_lsp(k)
 		end
 	end
@@ -56,18 +56,8 @@ M.setup = function(opts)
 		end
 	end
 
-	vim.api.nvim_create_user_command("ArkHelp", function(args)
-		if not args.fargs[1] then
-			return
-		end
-		require("jet.ark.utils").get_ark_kernel(function(k)
-			require("jet.ark.comm.help-backend").show_help_topic(k, { topic = args.fargs[1] }, function(res)
-				if not res then
-					vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
-				end
-			end)
-		end)
-	end, { nargs = 1 })
+	require("jet.ark.variables").setup()
+	require("jet.ark.help").setup()
 
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),

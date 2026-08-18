@@ -69,18 +69,16 @@ local M = {}
 ---
 ---The intrinsic size of a plot is the size at which a plot would be if no size constraints were applied by Positron.
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.plot_backend.get_intrinsic_size.Reply)
-M.get_intrinsic_size = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.plot", "get_intrinsic_size", params, "GetIntrinsicSizeReply", callback)
+M.get_intrinsic_size = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.plot", "get_intrinsic_size", nil, "GetIntrinsicSizeReply", callback)
 end
 
 ---Get metadata for the plot
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.plot_backend.get_metadata.Reply)
-M.get_metadata = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.plot", "get_metadata", params, "GetMetadataReply", callback)
+M.get_metadata = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.plot", "get_metadata", nil, "GetMetadataReply", callback)
 end
 
 ---@class jet.ark.comm.plot_backend.render.Params

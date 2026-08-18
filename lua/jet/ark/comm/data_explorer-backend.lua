@@ -487,10 +487,9 @@ end
 ---
 ---Suggest code syntax for code conversion based on the current backend state
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.data_explorer_backend.suggest_code_syntax.Reply)
-M.suggest_code_syntax = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.data_explorer", "suggest_code_syntax", params, "SuggestCodeSyntaxReply", callback)
+M.suggest_code_syntax = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "suggest_code_syntax", nil, "SuggestCodeSyntaxReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.set_column_filters.Params
@@ -564,20 +563,18 @@ end
 ---
 ---Creates a new, independent data explorer comm for the same underlying data. The new comm has its own state (filters, sorts). Used when promoting an inline notebook data explorer to a full data explorer panel.
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_data_explorer.Reply)
-M.open_data_explorer = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.data_explorer", "open_data_explorer", params, "OpenDataExplorerReply", callback)
+M.open_data_explorer = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "open_data_explorer", nil, "OpenDataExplorerReply", callback)
 end
 
 ---Get the state
 ---
 ---Request the current backend state (table metadata, explorer state, and features)
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_state.Reply)
-M.get_state = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.data_explorer", "get_state", params, "GetStateReply", callback)
+M.get_state = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "get_state", nil, "GetStateReply", callback)
 end
 
 return M

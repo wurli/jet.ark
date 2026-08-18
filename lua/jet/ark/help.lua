@@ -1,5 +1,20 @@
 local M = {}
 
+M.setup = function()
+	vim.api.nvim_create_user_command("ArkHelp", function(args)
+		if not args.fargs[1] then
+			return
+		end
+		require("jet.ark.utils").get_ark_kernel(function(k)
+			require("jet.ark.comm.help-backend").show_help_topic(k, { topic = args.fargs[1] }, function(res)
+				if not res then
+					vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
+				end
+			end)
+		end)
+	end, { nargs = 1 })
+end
+
 local win = -99
 local buf = -99
 

@@ -64,10 +64,9 @@ local M = {}
 ---
 ---Returns a list of all the variables in the current session.
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.variables_backend.list.Reply)
-M.list = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "list", params, "ListReply", callback)
+M.list = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.variables", "list", nil, "ListReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.clear.Params

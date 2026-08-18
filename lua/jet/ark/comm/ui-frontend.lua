@@ -89,9 +89,8 @@ end
 ---
 ---Use this to clear the console.
 ---@param kernel jet.Kernel
----@param params {}
-M.clear_console = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "clear_console", params)
+M.clear_console = function(kernel)
+	return util.rpc_request(kernel, "positron.ui", "clear_console", nil)
 end
 
 ---@class jet.ark.comm.ui_frontend.open_editor.Params
@@ -292,10 +291,9 @@ end
 ---
 ---Returns the path to the workspace folder, or first folder if there are multiple.
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.workspace_folder.Reply)
-M.workspace_folder = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "workspace_folder", params, "WorkspaceFolderReply", callback)
+M.workspace_folder = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.ui", "workspace_folder", nil, "WorkspaceFolderReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.set_editor_selections.Params
@@ -328,10 +326,9 @@ end
 ---
 ---Returns metadata such as file path for the last editor selected by the user. The result may be undefined if there are no active editors.
 ---@param kernel jet.Kernel
----@param params {}
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.last_active_editor_context.Reply)
-M.last_active_editor_context = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "last_active_editor_context", params, "LastActiveEditorContextReply", callback)
+M.last_active_editor_context = function(kernel, callback)
+	return util.rpc_request(kernel, "positron.ui", "last_active_editor_context", nil, "LastActiveEditorContextReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_url.Params
@@ -376,9 +373,8 @@ end
 ---
 ---This event is used to signal that the stored messages the front-end replays when constructing multi-output plots should be reset. This happens for things like a holoviews extension being changed.
 ---@param kernel jet.Kernel
----@param params {}
-M.clear_webview_preloads = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "clear_webview_preloads", params)
+M.clear_webview_preloads = function(kernel)
+	return util.rpc_request(kernel, "positron.ui", "clear_webview_preloads", nil)
 end
 
 return M

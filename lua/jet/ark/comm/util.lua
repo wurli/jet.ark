@@ -3,7 +3,7 @@ local M = {}
 ---@param kernel jet.Kernel
 ---@param comm string
 ---@param method string
----@param params table
+---@param params? table
 ---@param reply_method? string
 ---@param callback? fun(res: any)
 M.rpc_request = function(kernel, comm, method, params, reply_method, callback)

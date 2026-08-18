@@ -11,16 +11,14 @@ local M = {}
 
 ---Request to focus the Connections pane
 ---@param kernel jet.Kernel
----@param params {}
-M.focus = function(kernel, params)
-	return util.rpc_request(kernel, "positron.connections", "focus", params)
+M.focus = function(kernel)
+	return util.rpc_request(kernel, "positron.connections", "focus", nil)
 end
 
 ---Request the UI to refresh the connection information
 ---@param kernel jet.Kernel
----@param params {}
-M.update = function(kernel, params)
-	return util.rpc_request(kernel, "positron.connections", "update", params)
+M.update = function(kernel)
+	return util.rpc_request(kernel, "positron.connections", "update", nil)
 end
 
 return M

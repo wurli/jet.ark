@@ -13,18 +13,16 @@ local M = {}
 ---
 ---Notify the data explorer to do a state sync after a schema change.
 ---@param kernel jet.Kernel
----@param params {}
-M.schema_update = function(kernel, params)
-	return util.rpc_request(kernel, "positron.data_explorer", "schema_update", params)
+M.schema_update = function(kernel)
+	return util.rpc_request(kernel, "positron.data_explorer", "schema_update", nil)
 end
 
 ---Clear cache and request fresh data
 ---
 ---Triggered when there is any data change detected, clearing cache data and triggering a refresh/redraw.
 ---@param kernel jet.Kernel
----@param params {}
-M.data_update = function(kernel, params)
-	return util.rpc_request(kernel, "positron.data_explorer", "data_update", params)
+M.data_update = function(kernel)
+	return util.rpc_request(kernel, "positron.data_explorer", "data_update", nil)
 end
 
 ---@class jet.ark.comm.data_explorer_frontend.return_column_profiles.Params
