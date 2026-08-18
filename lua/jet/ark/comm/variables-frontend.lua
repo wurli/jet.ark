@@ -18,9 +18,10 @@ local M = {}
 ---Update variables
 ---
 ---Updates the variables in the current session.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_frontend.update.Params
-M.update = function(params)
-	return util.rpc_message("update", params)
+M.update = function(kernel, params)
+	return util.rpc_request(kernel, "positron.variables", "update", params)
 end
 
 ---@class jet.ark.comm.variables_frontend.refresh.Params
@@ -31,9 +32,10 @@ end
 ---Refresh variables
 ---
 ---Replace all variables in the current session with the variables from the backend.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_frontend.refresh.Params
-M.refresh = function(params)
-	return util.rpc_message("refresh", params)
+M.refresh = function(kernel, params)
+	return util.rpc_request(kernel, "positron.variables", "refresh", params)
 end
 
 return M

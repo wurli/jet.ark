@@ -25,15 +25,29 @@ local M = {}
 ---@field type? string Connection type
 ---@field code? string Code used to re-create the connection
 
+---@alias jet.ark.comm.connections_backend.list_objects.Reply jet.ark.comm.connections_backend.object_schema[]
+
+---@alias jet.ark.comm.connections_backend.list_fields.Reply jet.ark.comm.connections_backend.field_schema[]
+
+---@alias jet.ark.comm.connections_backend.contains_data.Reply boolean
+
+---@alias jet.ark.comm.connections_backend.get_icon.Reply string
+
+---@alias jet.ark.comm.connections_backend.preview_object.Reply nil
+
+---@alias jet.ark.comm.connections_backend.get_metadata.Reply jet.ark.comm.connections_backend.metadata_schema
+
 ---@class jet.ark.comm.connections_backend.list_objects.Params
 ---@field path jet.ark.comm.connections_backend.object_schema[] The path to object that we want to list children.
 
 ---List objects within a data source
 ---
 ---List objects within a data source, such as schemas, catalogs, tables and views.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.connections_backend.list_objects.Params
-M.list_objects = function(params)
-	return util.rpc_message("list_objects", params)
+---@param callback? fun(res: jet.ark.comm.connections_backend.list_objects.Reply)
+M.list_objects = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.connections", "list_objects", params, "ListObjectsReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.list_fields.Params
@@ -42,9 +56,11 @@ end
 ---List fields of an object
 ---
 ---List fields of an object, such as columns of a table or view.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.connections_backend.list_fields.Params
-M.list_fields = function(params)
-	return util.rpc_message("list_fields", params)
+---@param callback? fun(res: jet.ark.comm.connections_backend.list_fields.Reply)
+M.list_fields = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.connections", "list_fields", params, "ListFieldsReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.contains_data.Params
@@ -53,9 +69,11 @@ end
 ---Check if an object contains data
 ---
 ---Check if an object contains data, such as a table or view.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.connections_backend.contains_data.Params
-M.contains_data = function(params)
-	return util.rpc_message("contains_data", params)
+---@param callback? fun(res: jet.ark.comm.connections_backend.contains_data.Reply)
+M.contains_data = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.connections", "contains_data", params, "ContainsDataReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.get_icon.Params
@@ -64,9 +82,11 @@ end
 ---Get icon of an object
 ---
 ---Get icon of an object, such as a table or view.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.connections_backend.get_icon.Params
-M.get_icon = function(params)
-	return util.rpc_message("get_icon", params)
+---@param callback? fun(res: jet.ark.comm.connections_backend.get_icon.Reply)
+M.get_icon = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.connections", "get_icon", params, "GetIconReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.preview_object.Params
@@ -75,9 +95,11 @@ end
 ---Preview object data
 ---
 ---Preview object data, such as a table or view.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.connections_backend.preview_object.Params
-M.preview_object = function(params)
-	return util.rpc_message("preview_object", params)
+---@param callback? fun(res: jet.ark.comm.connections_backend.preview_object.Reply)
+M.preview_object = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.connections", "preview_object", params, "PreviewObjectReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.get_metadata.Params
@@ -86,9 +108,11 @@ end
 ---Gets metadata from the connections
 ---
 ---A connection has tied metadata such as an icon, the host, etc.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.connections_backend.get_metadata.Params
-M.get_metadata = function(params)
-	return util.rpc_message("get_metadata", params)
+---@param callback? fun(res: jet.ark.comm.connections_backend.get_metadata.Reply)
+M.get_metadata = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.connections", "get_metadata", params, "GetMetadataReply", callback)
 end
 
 return M

@@ -322,30 +322,58 @@ local M = {}
 ---@class jet.ark.comm.data_explorer_backend.open_dataset_result
 ---@field error_message? string An error message if opening the dataset failed
 
+---@alias jet.ark.comm.data_explorer_backend.open_dataset.Reply jet.ark.comm.data_explorer_backend.open_dataset_result
+
+---@alias jet.ark.comm.data_explorer_backend.get_schema.Reply jet.ark.comm.data_explorer_backend.table_schema
+
 ---@class jet.ark.comm.data_explorer_backend.search_schema_result
 ---@field matches integer[] The column indices that match the search parameters in the indicated sort order.
+
+---@alias jet.ark.comm.data_explorer_backend.search_schema.Reply jet.ark.comm.data_explorer_backend.search_schema_result
+
+---@alias jet.ark.comm.data_explorer_backend.get_data_values.Reply jet.ark.comm.data_explorer_backend.table_data
+
+---@alias jet.ark.comm.data_explorer_backend.get_row_labels.Reply jet.ark.comm.data_explorer_backend.table_row_labels
 
 ---Exported result
 ---@class jet.ark.comm.data_explorer_backend.exported_data
 ---@field data string Exported data as a string suitable for copy and paste
 ---@field format jet.ark.comm.data_explorer_backend.export_format The exported data format
 
+---@alias jet.ark.comm.data_explorer_backend.export_data_selection.Reply jet.ark.comm.data_explorer_backend.exported_data
+
 ---Code snippet for the data view
 ---@class jet.ark.comm.data_explorer_backend.converted_code
 ---@field converted_code string[] Lines of code that implement filters and sort keys
 
+---@alias jet.ark.comm.data_explorer_backend.convert_to_code.Reply jet.ark.comm.data_explorer_backend.converted_code
+
 ---Syntax to use for code conversion
 ---@class jet.ark.comm.data_explorer_backend.code_syntax_name
 ---@field code_syntax_name string The name of the code syntax, eg, pandas, polars, dplyr, etc.
+
+---@alias jet.ark.comm.data_explorer_backend.suggest_code_syntax.Reply jet.ark.comm.data_explorer_backend.code_syntax_name
+
+---@alias jet.ark.comm.data_explorer_backend.set_column_filters.Reply any
 
 ---The result of applying filters to a table
 ---@class jet.ark.comm.data_explorer_backend.filter_result
 ---@field selected_num_rows integer Number of rows in table after applying filters
 ---@field had_errors? boolean Flag indicating if there were errors in evaluation
 
+---@alias jet.ark.comm.data_explorer_backend.set_row_filters.Reply jet.ark.comm.data_explorer_backend.filter_result
+
+---@alias jet.ark.comm.data_explorer_backend.set_sort_columns.Reply any
+
+---@alias jet.ark.comm.data_explorer_backend.get_column_profiles.Reply any
+
 ---Result of setting import options
 ---@class jet.ark.comm.data_explorer_backend.set_dataset_import_options_result
 ---@field error_message? string An error message if setting the options failed
+
+---@alias jet.ark.comm.data_explorer_backend.set_dataset_import_options.Reply jet.ark.comm.data_explorer_backend.set_dataset_import_options_result
+
+---@alias jet.ark.comm.data_explorer_backend.open_data_explorer.Reply any
 
 ---The current backend state for the data explorer
 ---@class jet.ark.comm.data_explorer_backend.backend_state
@@ -361,13 +389,17 @@ local M = {}
 ---@field error_message? string Optional experimental parameter to provide an explanation when connected=false. This parameter may change.
 ---@field available_sheets? string[] For Excel workbooks, the names of the worksheets available to read, in workbook order. Absent for non-Excel data sources.
 
+---@alias jet.ark.comm.data_explorer_backend.get_state.Reply jet.ark.comm.data_explorer_backend.backend_state
+
 ---@class jet.ark.comm.data_explorer_backend.open_dataset.Params
 ---@field uri string The resource locator or file path
 
 ---Request to open a dataset given a URI
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.open_dataset.Params
-M.open_dataset = function(params)
-	return util.rpc_message("open_dataset", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_dataset.Reply)
+M.open_dataset = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "open_dataset", params, "OpenDatasetReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.get_schema.Params
@@ -376,9 +408,11 @@ end
 ---Request schema
 ---
 ---Request subset of column schemas for a table-like object
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.get_schema.Params
-M.get_schema = function(params)
-	return util.rpc_message("get_schema", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_schema.Reply)
+M.get_schema = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "get_schema", params, "GetSchemaReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.search_schema.Params
@@ -386,9 +420,11 @@ end
 ---@field sort_order "original"|"ascending_name"|"descending_name"|"ascending_type"|"descending_type" How to sort results: original in-schema order, alphabetical ascending or descending
 
 ---Search table schema with column filters, optionally sort results
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.search_schema.Params
-M.search_schema = function(params)
-	return util.rpc_message("search_schema", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.search_schema.Reply)
+M.search_schema = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "search_schema", params, "SearchSchemaReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.get_data_values.Params
@@ -398,9 +434,11 @@ end
 ---Request formatted values from table columns
 ---
 ---Request data from table columns with values formatted as strings
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.get_data_values.Params
-M.get_data_values = function(params)
-	return util.rpc_message("get_data_values", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_data_values.Reply)
+M.get_data_values = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "get_data_values", params, "GetDataValuesReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.get_row_labels.Params
@@ -408,9 +446,11 @@ end
 ---@field format_options jet.ark.comm.data_explorer_backend.format_options Formatting options for returning labels as strings
 
 ---Request formatted row labels from table
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.get_row_labels.Params
-M.get_row_labels = function(params)
-	return util.rpc_message("get_row_labels", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_row_labels.Reply)
+M.get_row_labels = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "get_row_labels", params, "GetRowLabelsReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.export_data_selection.Params
@@ -420,9 +460,11 @@ end
 ---Export data selection as a string in different formats
 ---
 ---Export data selection as a string in different formats like CSV, TSV, HTML
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.export_data_selection.Params
-M.export_data_selection = function(params)
-	return util.rpc_message("export_data_selection", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.export_data_selection.Reply)
+M.export_data_selection = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "export_data_selection", params, "ExportDataSelectionReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.convert_to_code.Params
@@ -434,17 +476,21 @@ end
 ---Converts the current data view into a code snippet.
 ---
 ---Converts filters and sort keys as code in different syntaxes like pandas, polars, data.table, dplyr
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.convert_to_code.Params
-M.convert_to_code = function(params)
-	return util.rpc_message("convert_to_code", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.convert_to_code.Reply)
+M.convert_to_code = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "convert_to_code", params, "ConvertToCodeReply", callback)
 end
 
 ---Suggest code syntax for code conversion
 ---
 ---Suggest code syntax for code conversion based on the current backend state
+---@param kernel jet.Kernel
 ---@param params {}
-M.suggest_code_syntax = function(params)
-	return util.rpc_message("suggest_code_syntax", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.suggest_code_syntax.Reply)
+M.suggest_code_syntax = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "suggest_code_syntax", params, "SuggestCodeSyntaxReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.set_column_filters.Params
@@ -453,9 +499,11 @@ end
 ---Set column filters to select subset of table columns
 ---
 ---Set or clear column filters on table, replacing any previous filters
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.set_column_filters.Params
-M.set_column_filters = function(params)
-	return util.rpc_message("set_column_filters", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_column_filters.Reply)
+M.set_column_filters = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "set_column_filters", params, "SetColumnFiltersReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.set_row_filters.Params
@@ -464,9 +512,11 @@ end
 ---Set row filters based on column values
 ---
 ---Row filters to apply (or pass empty array to clear row filters)
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.set_row_filters.Params
-M.set_row_filters = function(params)
-	return util.rpc_message("set_row_filters", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_row_filters.Reply)
+M.set_row_filters = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "set_row_filters", params, "SetRowFiltersReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.set_sort_columns.Params
@@ -475,9 +525,11 @@ end
 ---Set or clear sort-by-column(s)
 ---
 ---Set or clear the columns(s) to sort by, replacing any previous sort columns
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.set_sort_columns.Params
-M.set_sort_columns = function(params)
-	return util.rpc_message("set_sort_columns", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_sort_columns.Reply)
+M.set_sort_columns = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "set_sort_columns", params, "SetSortColumnsReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.get_column_profiles.Params
@@ -488,9 +540,11 @@ end
 ---Async request a batch of column profiles
 ---
 ---Async request for a statistical summary or data profile for batch of columns
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.get_column_profiles.Params
-M.get_column_profiles = function(params)
-	return util.rpc_message("get_column_profiles", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_column_profiles.Reply)
+M.get_column_profiles = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "get_column_profiles", params, "GetColumnProfilesReply", callback)
 end
 
 ---@class jet.ark.comm.data_explorer_backend.set_dataset_import_options.Params
@@ -499,25 +553,31 @@ end
 ---Set import options for file-based data sources
 ---
 ---Set import options for file-based data sources (like CSV files) and reimport the data. This method is primarily used by file-based backends like DuckDB.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.data_explorer_backend.set_dataset_import_options.Params
-M.set_dataset_import_options = function(params)
-	return util.rpc_message("set_dataset_import_options", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_dataset_import_options.Reply)
+M.set_dataset_import_options = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "set_dataset_import_options", params, "SetDatasetImportOptionsReply", callback)
 end
 
 ---Open a full data explorer for the same data
 ---
 ---Creates a new, independent data explorer comm for the same underlying data. The new comm has its own state (filters, sorts). Used when promoting an inline notebook data explorer to a full data explorer panel.
+---@param kernel jet.Kernel
 ---@param params {}
-M.open_data_explorer = function(params)
-	return util.rpc_message("open_data_explorer", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_data_explorer.Reply)
+M.open_data_explorer = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "open_data_explorer", params, "OpenDataExplorerReply", callback)
 end
 
 ---Get the state
 ---
 ---Request the current backend state (table metadata, explorer state, and features)
+---@param kernel jet.Kernel
 ---@param params {}
-M.get_state = function(params)
-	return util.rpc_message("get_state", params)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_state.Reply)
+M.get_state = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.data_explorer", "get_state", params, "GetStateReply", callback)
 end
 
 return M

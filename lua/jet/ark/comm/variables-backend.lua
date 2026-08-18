@@ -30,14 +30,26 @@ local M = {}
 ---@field length integer The total number of variables in the session. This may be greater than the number of variables in the 'variables' array if the array is truncated.
 ---@field version? integer The version of the view (incremented with each update)
 
+---@alias jet.ark.comm.variables_backend.list.Reply jet.ark.comm.variables_backend.variable_list
+
+---@alias jet.ark.comm.variables_backend.clear.Reply any
+
+---@alias jet.ark.comm.variables_backend.delete.Reply string[]
+
 ---An inspected variable.
 ---@class jet.ark.comm.variables_backend.inspected_variable
 ---@field children jet.ark.comm.variables_backend.variable[] The children of the inspected variable.
 ---@field length integer The total number of children. This may be greater than the number of children in the 'children' array if the array is truncated.
 
+---@alias jet.ark.comm.variables_backend.inspect.Reply jet.ark.comm.variables_backend.inspected_variable
+
 ---An object formatted for copying to the clipboard.
 ---@class jet.ark.comm.variables_backend.formatted_variable
 ---@field content string The formatted content of the variable.
+
+---@alias jet.ark.comm.variables_backend.clipboard_format.Reply jet.ark.comm.variables_backend.formatted_variable
+
+---@alias jet.ark.comm.variables_backend.view.Reply string
 
 ---Result of the summarize operation
 ---@class jet.ark.comm.variables_backend.query_table_summary_result
@@ -46,12 +58,16 @@ local M = {}
 ---@field column_schemas string[] The column schemas in the table.
 ---@field column_profiles string[] The column profiles in the table.
 
+---@alias jet.ark.comm.variables_backend.query_table_summary.Reply jet.ark.comm.variables_backend.query_table_summary_result
+
 ---List all variables
 ---
 ---Returns a list of all the variables in the current session.
+---@param kernel jet.Kernel
 ---@param params {}
-M.list = function(params)
-	return util.rpc_message("list", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.list.Reply)
+M.list = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "list", params, "ListReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.clear.Params
@@ -60,9 +76,11 @@ end
 ---Clear all variables
 ---
 ---Clears (deletes) all variables in the current session.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_backend.clear.Params
-M.clear = function(params)
-	return util.rpc_message("clear", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.clear.Reply)
+M.clear = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "clear", params, "ClearReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.delete.Params
@@ -71,9 +89,11 @@ end
 ---Deletes a set of named variables
 ---
 ---Deletes the named variables from the current session.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_backend.delete.Params
-M.delete = function(params)
-	return util.rpc_message("delete", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.delete.Reply)
+M.delete = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "delete", params, "DeleteReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.inspect.Params
@@ -82,9 +102,11 @@ end
 ---Inspect a variable
 ---
 ---Returns the children of a variable, as an array of variables.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_backend.inspect.Params
-M.inspect = function(params)
-	return util.rpc_message("inspect", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.inspect.Reply)
+M.inspect = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "inspect", params, "InspectReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.clipboard_format.Params
@@ -94,9 +116,11 @@ end
 ---Format for clipboard
 ---
 ---Requests a formatted representation of a variable for copying to the clipboard.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_backend.clipboard_format.Params
-M.clipboard_format = function(params)
-	return util.rpc_message("clipboard_format", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.clipboard_format.Reply)
+M.clipboard_format = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "clipboard_format", params, "ClipboardFormatReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.view.Params
@@ -105,9 +129,11 @@ end
 ---Request a viewer for a variable
 ---
 ---Request that the runtime open a data viewer to display the data in a variable.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_backend.view.Params
-M.view = function(params)
-	return util.rpc_message("view", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.view.Reply)
+M.view = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "view", params, "ViewReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.query_table_summary.Params
@@ -117,9 +143,11 @@ end
 ---Query table summary
 ---
 ---Request a data summary for a table variable.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.variables_backend.query_table_summary.Params
-M.query_table_summary = function(params)
-	return util.rpc_message("query_table_summary", params)
+---@param callback? fun(res: jet.ark.comm.variables_backend.query_table_summary.Reply)
+M.query_table_summary = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.variables", "query_table_summary", params, "QueryTableSummaryReply", callback)
 end
 
 return M

@@ -7,7 +7,7 @@ file exports one function per RPC method that wraps the params in the standard
 JSON-RPC envelope via `jet.ark.comm.util.rpc_message`.
 
 EmmyLua classes are emitted for any named object schema (either at the method
-level as `<method>.Params` / `<method>.Result` or as a shared class pulled from
+level as `<method>.Params` / `<method>.Reply` or as a shared class pulled from
 `components.schemas`). Cross-file `$ref`s (e.g. `plot-backend-openrpc.json#/...`)
 resolve to the class name in the referenced file.
 """
@@ -277,16 +277,37 @@ class Emitter:
             for dl in description.strip().splitlines():
                 lines.append(f"---{dl}")
 
-        # Result class (registered so callers can annotate their handlers)
+        # Reply type (registered so callers can annotate their handlers).
+        # We always want the callback param typed as `<method>.Reply` for
+        # consistency; if the underlying schema is a named object or a `$ref`
+        # we emit `<method>.Reply` as an alias to that type so both names
+        # resolve.
         result = method.get("result")
+        result_type: str | None = None
         if result is not None:
             rschema = result.get("schema") or {}
-            self.type_of(rschema, f"{name}.Result")
+            underlying = self.type_of(rschema)
+            result_class = f"{self.prefix}.{name}.Reply"
+            if underlying != result_class:
+                self.ensure_alias(result_class, underlying, None)
+            result_type = result_class
 
         param_type = params_class if params_class else "{}"
+        comm_channel = f"positron.{self.comm}"
+        lines.append("---@param kernel jet.Kernel")
         lines.append(f"---@param params {param_type}")
-        lines.append(f"M.{name} = function(params)")
-        lines.append(f'\treturn util.rpc_message("{name}", params)')
+        if result_type is not None:
+            reply_method = "".join(w.capitalize() for w in name.split("_")) + "Reply"
+            lines.append(f"---@param callback? fun(res: {result_type})")
+            lines.append(f"M.{name} = function(kernel, params, callback)")
+            lines.append(
+                f'\treturn util.rpc_request(kernel, "{comm_channel}", "{name}", params, "{reply_method}", callback)'
+            )
+        else:
+            lines.append(f"M.{name} = function(kernel, params)")
+            lines.append(
+                f'\treturn util.rpc_request(kernel, "{comm_channel}", "{name}", params)'
+            )
         lines.append("end")
 
         func_block = "\n".join(lines)

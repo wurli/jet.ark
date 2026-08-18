@@ -15,9 +15,10 @@ local M = {}
 ---@field focus boolean Whether to focus the Help pane when the content is displayed.
 
 ---Request to show help in the frontend
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.help_frontend.show_help.Params
-M.show_help = function(params)
-	return util.rpc_message("show_help", params)
+M.show_help = function(kernel, params)
+	return util.rpc_request(kernel, "positron.help", "show_help", params)
 end
 
 return M

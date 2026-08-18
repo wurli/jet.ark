@@ -45,6 +45,8 @@ local M = {}
 ---@field unit jet.ark.comm.plot_backend.plot_unit The unit of measurement of the plot's dimensions
 ---@field source string The source of the intrinsic size e.g. 'Matplotlib'
 
+---@alias jet.ark.comm.plot_backend.get_intrinsic_size.Reply jet.ark.comm.plot_backend.intrinsic_size
+
 ---The plot's metadata
 ---@class jet.ark.comm.plot_backend.plot_metadata
 ---@field name string A unique, human-readable name for the plot
@@ -53,24 +55,32 @@ local M = {}
 ---@field code string The code fragment that produced the plot
 ---@field origin? jet.ark.comm.plot_backend.plot_origin The origin of the plot, if known
 
+---@alias jet.ark.comm.plot_backend.get_metadata.Reply jet.ark.comm.plot_backend.plot_metadata
+
 ---A rendered plot
 ---@class jet.ark.comm.plot_backend.plot_result
 ---@field data string The plot data, as a base64-encoded string
 ---@field mime_type string The MIME type of the plot data
 ---@field settings? jet.ark.comm.plot_backend.plot_render_settings The settings used to render the plot
 
+---@alias jet.ark.comm.plot_backend.render.Reply jet.ark.comm.plot_backend.plot_result
+
 ---Get the intrinsic size of a plot, if known.
 ---
 ---The intrinsic size of a plot is the size at which a plot would be if no size constraints were applied by Positron.
+---@param kernel jet.Kernel
 ---@param params {}
-M.get_intrinsic_size = function(params)
-	return util.rpc_message("get_intrinsic_size", params)
+---@param callback? fun(res: jet.ark.comm.plot_backend.get_intrinsic_size.Reply)
+M.get_intrinsic_size = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.plot", "get_intrinsic_size", params, "GetIntrinsicSizeReply", callback)
 end
 
 ---Get metadata for the plot
+---@param kernel jet.Kernel
 ---@param params {}
-M.get_metadata = function(params)
-	return util.rpc_message("get_metadata", params)
+---@param callback? fun(res: jet.ark.comm.plot_backend.get_metadata.Reply)
+M.get_metadata = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.plot", "get_metadata", params, "GetMetadataReply", callback)
 end
 
 ---@class jet.ark.comm.plot_backend.render.Params
@@ -81,9 +91,11 @@ end
 ---Render a plot
 ---
 ---Requests a plot to be rendered. The plot data is returned in a base64-encoded string.
+---@param kernel jet.Kernel
 ---@param params jet.ark.comm.plot_backend.render.Params
-M.render = function(params)
-	return util.rpc_message("render", params)
+---@param callback? fun(res: jet.ark.comm.plot_backend.render.Reply)
+M.render = function(kernel, params, callback)
+	return util.rpc_request(kernel, "positron.plot", "render", params, "RenderReply", callback)
 end
 
 return M

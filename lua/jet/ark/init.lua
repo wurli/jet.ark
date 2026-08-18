@@ -44,6 +44,7 @@ M.setup = function(opts)
 			-- setConsoleWidth below.
 			k:comm_open("positron.ui", {})
 			k:comm_open("positron.help", {}, { listener = require("jet.ark.help").listener })
+			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
 			lsp.start_ark_lsp(k)
 		end
 	end
