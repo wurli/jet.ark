@@ -1,5 +1,4 @@
 local config = require("jet.ark.config")
-local comm = require("lua.jet.ark.comm")
 local lsp = require("jet.ark.lsp")
 
 local M = {}
@@ -80,7 +79,10 @@ M.setup = function(opts)
 							kernel:comm_send(
 								comm_id,
 								-- Subtract 2 to account for indent added by external clients
-								comm.call_method("setConsoleWidth", { vim.api.nvim_win_get_width(win) - 2 })
+								require("jet.ark.comm.ui-backend").call_method({
+									method = "setConsoleWidth",
+									params = { vim.api.nvim_win_get_width(win) - 2 },
+								})
 							)
 						end
 					end
