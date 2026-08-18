@@ -1,6 +1,7 @@
 local M = {}
 
 local win = -99
+local buf = -99
 
 ---@param msg jet.jupyter.msg
 M.listener = function(msg)
@@ -38,10 +39,11 @@ M.listener = function(msg)
 				return
 			end
 
-			local buf = vim.api.nvim_create_buf(false, true)
-			vim.bo[buf].filetype = "markdown"
-
-			vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = buf, silent = true })
+			if not vim.api.nvim_buf_is_valid(buf) then
+				buf = vim.api.nvim_create_buf(false, true)
+				vim.bo[buf].filetype = "markdown"
+				vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = buf, silent = true })
+			end
 
 			vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(res.stdout, "\n"))
 
