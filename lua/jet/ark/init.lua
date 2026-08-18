@@ -44,7 +44,7 @@ M.setup = function(opts)
 			-- setConsoleWidth below.
 			k:comm_open("positron.ui", {})
 			k:comm_open("positron.help", {}, { listener = require("jet.ark.help").listener })
-			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
+			-- k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
 			lsp.start_ark_lsp(k)
 		end
 	end
@@ -61,12 +61,11 @@ M.setup = function(opts)
 			return
 		end
 		require("jet.ark.utils").get_ark_kernel(function(k)
-			k:comm_send(
-				k.comms["positron.help"],
-				require("jet.ark.comm.help-backend").show_help_topic({
-					topic = args.fargs[1],
-				})
-			)
+			require("jet.ark.comm.help-backend").show_help_topic(k, { topic = args.fargs[1] }, function(res)
+				if not res then
+					vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
+				end
+			end)
 		end)
 	end, { nargs = 1 })
 
@@ -92,14 +91,10 @@ M.setup = function(opts)
 						local comm_id = kernel.comms["positron.ui"]
 						---@diagnostic disable-next-line: unnecessary-if
 						if comm_id then
-							kernel:comm_send(
-								comm_id,
-								-- Subtract 2 to account for indent added by external clients
-								require("jet.ark.comm.ui-backend").call_method({
-									method = "setConsoleWidth",
-									params = { vim.api.nvim_win_get_width(win) - 2 },
-								})
-							)
+							require("jet.ark.comm.ui-backend").call_method(kernel, {
+								method = "setConsoleWidth",
+								params = { vim.api.nvim_win_get_width(win) - 2 },
+							})
 						end
 					end
 				end

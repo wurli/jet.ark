@@ -7,11 +7,6 @@ local buf = -99
 M.listener = function(msg)
 	local data = msg.content.data
 
-	if data.method == "ShowHelpTopicReply" and data.result == false then
-		vim.notify("[jet.ark] Failed to get help topic", vim.log.levels.ERROR)
-		return
-	end
-
 	local url = data and data.method == "show_help" and data.params and data.params.content or nil
 	if not (url and type(url) == "string") then
 		return
