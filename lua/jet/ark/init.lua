@@ -1,10 +1,10 @@
 local config = require("jet.ark.config")
-local comm = require("jet.ark.comm")
+local comm = require("lua.jet.ark.comm")
 local lsp = require("jet.ark.lsp")
 
 local M = {}
 
----@param opts? jet.ark.config
+---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
@@ -25,7 +25,7 @@ M.setup = function(opts)
 	require("jet.core.send.get_code").filetype.r = require("jet.ark.get_code")
 
 	-- Let jet know that Ark is for the 'r' filetype
-	---@param k jet.kernel
+	---@param k jet.Kernel
 	table.insert(jet_cfg.hooks.on_kernel_init, function(k)
 		if k.spec_path == config.data.kernelspec_path then
 			k.filetype = "r"
@@ -36,7 +36,7 @@ M.setup = function(opts)
 	--    Ark UI features     --
 	----------------------------
 
-	---@param k jet.kernel
+	---@param k jet.Kernel
 	jet_cfg.hooks.on_lua_client_start.start_ark_lsp = function(k)
 		-- We don't need to open a listener on the UI comm since right now only
 		-- `working_directory` and `prompt_state` come through
@@ -110,7 +110,7 @@ M.setup = function(opts)
 	-- For convenience, if we close Ark _and_ we're in an R file, start the LSP
 	-- up again (this happens on BufEnter, but BufEnter isn't triggered if
 	-- we're in an R file when the kernel is closed)
-	---@param k jet.kernel
+	---@param k jet.Kernel
 	table.insert(jet_cfg.hooks.on_kernel_close, function(k)
 		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
 			-- Since the LSP has been stopped we wipe the config, since this

@@ -60,10 +60,12 @@ M.generate = function()
 		env = {
 			RUST_LOG = "error",
 		},
+		kernel_protocol_version = "5.3",
 	}
 end
 
 M.install = function()
+	assert(config.data.kernelspec_path, "config.data.kernelspec_path is missing")
 	require("jet.core.kernelspec").install(M.generate(), config.data.kernelspec_path)
 end
 
