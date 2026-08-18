@@ -1,23 +1,28 @@
 {
-	"runtime": {
-		"version": "LuaJIT",
-		"requirePattern": [
-			"?/init.lua",
-			"?.lua"
-		]
-	},
-	"workspace": {
-		"library": [
-			"$VIMRUNTIME",
-			"$HOME/Repos/jet.nvim/lua"
-		],
-		"ignoreDir": [
-			"target",
-			"deps",
-			"debug"
-		],
-		"ignoreGlobs": [
-			"*.log"
-		]
-	}
+  "diagnostics": {
+    "disable": [
+      "unnecessary-if"
+    ]
+  },
+  "runtime": {
+    "requirePattern": [
+      "?/init.lua",
+      "?.lua"
+    ],
+    "version": "LuaJIT"
+  },
+  "workspace": {
+    "ignoreDir": [
+      "target",
+      "deps",
+      "debug"
+    ],
+    "ignoreGlobs": [
+      "*.log"
+    ],
+    "library": [
+      "$VIMRUNTIME",
+      "$HOME/Repos/jet.nvim/lua"
+    ]
+  }
 }
