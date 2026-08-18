@@ -2,9 +2,9 @@ local M = {}
 
 local lsp_starting = false
 
----@param kernel? jet.kernel
+---@param kernel? jet.Kernel
 M.start_ark_lsp = function(kernel)
-	---@param k jet.kernel
+	---@param k jet.Kernel
 	local start_lsp = function(k)
 		---@diagnostic disable-next-line: unnecessary-if
 		-- Prevents starting multiple LSPs on the same kernel
