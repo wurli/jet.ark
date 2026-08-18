@@ -57,7 +57,7 @@ M.setup = function(opts)
 						"-f",
 						"html",
 						"-t",
-						"markdown-simple_tables-multiline_tables-grid_tables-native_divs-fenced_divs-raw_html-smart+pipe_tables",
+						"markdown-simple_tables-multiline_tables-pipe_tables-native_divs-fenced_divs-raw_html-smart+grid_tables",
 						"--columns=100",
 					}, {}, function(res)
 						if not res.signal == 0 then
@@ -80,7 +80,7 @@ M.setup = function(opts)
 
 							vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(res.stdout, "\n"))
 
-							local w = vim.api.nvim_open_win(buf, true, {
+							vim.api.nvim_open_win(buf, true, {
 								relative = "editor",
 								width = math.floor(vim.o.columns * 0.8),
 								height = math.floor(vim.o.lines * 0.8),
@@ -88,8 +88,6 @@ M.setup = function(opts)
 								col = math.floor(vim.o.columns * 0.1),
 								style = "minimal",
 							})
-
-							vim.wo[w].conceallevel = 2
 						end)
 					end)
 				end,
