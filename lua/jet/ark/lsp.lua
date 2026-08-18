@@ -38,23 +38,7 @@ M.start_ark_lsp = function(kernel)
 		return
 	end
 
-	---@param status jet.kernel.status | jet.kernel.status[]
-	local get_kernels = function(status, callback)
-		local spec_path = require("jet.ark.config").data.kernelspec_path
-		require("jet.core.api").list_kernels({ spec_path = spec_path, status = status }, {}, callback)
-	end
-
-	get_kernels({ "connected", "connecting" }, function(connected)
-		if connected[1] then
-			return connected[1]:start_lua_client(start_lsp)
-		end
-		get_kernels("inactive", function(inactive)
-			if inactive[1] then
-				return inactive[1]:start_lua_client(start_lsp)
-			end
-			error("No Ark kernel found. Please start an Ark kernel first")
-		end)
-	end)
+	require("jet.ark.utils").get_ark_kernel(start_lsp)
 end
 
 M.setup = function() end
