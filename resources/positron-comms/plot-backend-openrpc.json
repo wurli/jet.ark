@@ -1,0 +1,242 @@
+{
+	"openrpc": "1.3.0",
+	"info": {
+		"title": "Plot Backend",
+		"version": "1.0.0"
+	},
+	"methods": [
+		{
+			"name": "get_intrinsic_size",
+			"summary": "Get the intrinsic size of a plot, if known.",
+			"description": "The intrinsic size of a plot is the size at which a plot would be if no size constraints were applied by Positron.",
+			"params": [],
+			"result": {
+				"required": false,
+				"schema": {
+					"name": "intrinsic_size",
+					"description": "The intrinsic size of a plot, if known",
+					"type": "object",
+					"properties": {
+						"width": {
+							"type": "number",
+							"description": "The width of the plot"
+						},
+						"height": {
+							"type": "number",
+							"description": "The height of the plot"
+						},
+						"unit": {
+							"description": "The unit of measurement of the plot's dimensions",
+							"$ref": "#/components/schemas/plot_unit"
+						},
+						"source": {
+							"type": "string",
+							"description": "The source of the intrinsic size e.g. 'Matplotlib'"
+						}
+					},
+					"required": [
+						"width",
+						"height",
+						"unit",
+						"source"
+					]
+				}
+			}
+		},
+		{
+			"name": "get_metadata",
+			"summary": "Get metadata for the plot",
+			"description": "Get metadata for the plot",
+			"params": [],
+			"result": {
+				"required": true,
+				"schema": {
+					"name": "plot_metadata",
+					"description": "The plot's metadata",
+					"type": "object",
+					"properties": {
+						"name": {
+							"type": "string",
+							"description": "A unique, human-readable name for the plot"
+						},
+						"kind": {
+							"type": "string",
+							"description": "The kind of plot e.g. 'Matplotlib', 'ggplot2', etc."
+						},
+						"execution_id": {
+							"type": "string",
+							"description": "The ID of the code fragment that produced the plot"
+						},
+						"code": {
+							"description": "The code fragment that produced the plot",
+							"type": "string"
+						},
+						"origin": {
+							"description": "The origin of the plot, if known",
+							"$ref": "#/components/schemas/plot_origin"
+						}
+					},
+					"required": [
+						"name",
+						"kind",
+						"execution_id",
+						"code"
+					]
+				}
+			}
+		},
+		{
+			"name": "render",
+			"summary": "Render a plot",
+			"description": "Requests a plot to be rendered. The plot data is returned in a base64-encoded string.",
+			"params": [
+				{
+					"name": "size",
+					"description": "The requested size of the plot. If not provided, the plot will be rendered at its intrinsic size.",
+					"schema": {
+						"$ref": "#/components/schemas/plot_size"
+					},
+					"required": false
+				},
+				{
+					"name": "pixel_ratio",
+					"description": "The pixel ratio of the display device",
+					"schema": {
+						"type": "number"
+					}
+				},
+				{
+					"name": "format",
+					"description": "The requested plot format",
+					"schema": {
+						"$ref": "#/components/schemas/plot_render_format"
+					}
+				}
+			],
+			"result": {
+				"schema": {
+					"name": "plot_result",
+					"type": "object",
+					"description": "A rendered plot",
+					"properties": {
+						"data": {
+							"description": "The plot data, as a base64-encoded string",
+							"type": "string"
+						},
+						"mime_type": {
+							"description": "The MIME type of the plot data",
+							"type": "string"
+						},
+						"settings": {
+							"description": "The settings used to render the plot",
+							"$ref": "#/components/schemas/plot_render_settings"
+						}
+					},
+					"required": [
+						"data",
+						"mime_type"
+					]
+				}
+			}
+		}
+	],
+	"components": {
+		"schemas": {
+			"plot_unit": {
+				"type": "string",
+				"description": "The unit of measurement of a plot's dimensions",
+				"enum": ["pixels", "inches"]
+			},
+			"plot_size": {
+				"type": "object",
+				"description": "The size of a plot",
+				"properties": {
+					"height": {
+						"description": "The plot's height, in pixels",
+						"type": "integer"
+					},
+					"width": {
+						"description": "The plot's width, in pixels",
+						"type": "integer"
+					}
+				},
+				"required": ["height", "width"],
+				"rust": {
+					"copy": true
+				}
+			},
+			"plot_origin": {
+				"type": "object",
+				"description": "The origin (source) of a plot",
+				"properties": {
+					"uri": {
+						"description": "The URI of the document containing the code that produced the plot, if available",
+						"type": "string"
+					},
+					"range": {
+						"description": "The range within the document at uri that produced the plot, if available",
+						"$ref": "#/components/schemas/plot_range"
+					}
+				},
+				"required": [
+					"uri"
+				]
+			},
+			"plot_range": {
+				"description": "The range of a plot within a document",
+				"type": "object",
+				"properties": {
+					"start_line": {
+						"type": "integer",
+						"description": "The line number on which the plot starts (0-indexed)"
+					},
+					"start_character": {
+						"type": "integer",
+						"description": "The character number on which the plot starts (0-indexed)"
+					},
+					"end_line": {
+						"type": "integer",
+						"description": "The line number on which the plot ends (0-indexed)"
+					},
+					"end_character": {
+						"type": "integer",
+						"description": "The character number on which the plot ends (0-indexed)"
+					}
+				},
+				"required": [
+					"start_line",
+					"start_character",
+					"end_line",
+					"end_character"
+				]
+			 },
+			"plot_render_format": {
+				"description": "The requested plot format",
+				"type": "string",
+				"enum": ["png", "jpeg", "svg", "pdf", "tiff"]
+			},
+			"plot_render_settings": {
+				"type": "object",
+				"description": "The settings used to render the plot",
+				"properties": {
+					"size": {
+						"description": "Plot size to render the plot to",
+						"$ref": "#/components/schemas/plot_size"
+					},
+					"pixel_ratio": {
+						"description": "The pixel ratio of the display device",
+						"type": "number"
+					},
+					"format": {
+						"description": "Format in which to render the plot",
+						"$ref": "#/components/schemas/plot_render_format"
+					}
+				},
+				"required": ["size", "pixel_ratio", "format"],
+				"rust": {
+					"copy": true
+				}
+			}
+		}
+	}
+}

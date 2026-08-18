@@ -1,0 +1,37 @@
+{
+	"openrpc": "1.3.0",
+	"info": {
+		"title": "Plot Frontend",
+		"version": "1.0.0"
+	},
+	"methods": [
+		{
+			"name": "update",
+			"summary": "Notification that a plot has been updated on the backend.",
+			"params": [
+				{
+					"name": "pre_render",
+					"description": "Optional pre-rendering data for immediate display",
+					"required": false,
+					"schema": {
+						"$ref": "plot-backend-openrpc.json#/components/schemas/plot_result"
+					}
+				}
+			]
+		},
+		{
+			"name": "show",
+			"summary": "Show a plot.",
+			"params": [
+				{
+					"name": "pre_render",
+					"description": "Optional pre-rendering data for immediate display",
+					"required": false,
+					"schema": {
+						"$ref": "plot-backend-openrpc.json#/components/schemas/plot_result"
+					}
+				}
+			]
+		}
+	]
+}
