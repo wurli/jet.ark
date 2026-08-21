@@ -14,9 +14,10 @@ local M = {}
 
 ---Notification that a plot has been updated on the backend.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.plot_frontend.update.Params
-M.update = function(kernel, params)
-	return util.rpc_request(kernel, "positron.plot", "update", params)
+M.update = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "update", params)
 end
 
 ---@class jet.ark.comm.plot_frontend.show.Params
@@ -24,9 +25,10 @@ end
 
 ---Show a plot.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.plot_frontend.show.Params
-M.show = function(kernel, params)
-	return util.rpc_request(kernel, "positron.plot", "show", params)
+M.show = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "show", params)
 end
 
 return M

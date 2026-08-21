@@ -18,10 +18,11 @@ local M = {}
 ---
 ---Requests that the help backend look for a help topic and, if found, show it. If the topic is found, it will be shown via a Show Help notification. If the topic is not found, no notification will be delivered.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.help_backend.show_help_topic.Params
 ---@param callback? fun(res: jet.ark.comm.help_backend.show_help_topic.Reply)
-M.show_help_topic = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.help", "show_help_topic", params, "ShowHelpTopicReply", callback)
+M.show_help_topic = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "show_help_topic", params, "ShowHelpTopicReply", callback)
 end
 
 return M

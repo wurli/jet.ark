@@ -80,17 +80,19 @@ local M = {}
 ---
 ---This represents the busy state of the underlying computation engine, not the busy state of the kernel. The kernel is busy when it is processing a request, but the runtime is busy only when a computation is running.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.busy.Params
-M.busy = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "busy", params)
+M.busy = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "busy", params)
 end
 
 ---Clear the console
 ---
 ---Use this to clear the console.
 ---@param kernel jet.Kernel
-M.clear_console = function(kernel)
-	return util.rpc_request(kernel, "positron.ui", "clear_console", nil)
+---@param comm_id string
+M.clear_console = function(kernel, comm_id)
+	return util.rpc_request(kernel, comm_id, "clear_console", nil)
 end
 
 ---@class jet.ark.comm.ui_frontend.open_editor.Params
@@ -104,9 +106,10 @@ end
 ---
 ---This event is used to open an editor with a given file and selection.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.open_editor.Params
-M.open_editor = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "open_editor", params)
+M.open_editor = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "open_editor", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.new_document.Params
@@ -117,10 +120,11 @@ end
 ---
 ---Use this to create a new document with the given language ID and text contents
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.new_document.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.new_document.Reply)
-M.new_document = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "new_document", params, "NewDocumentReply", callback)
+M.new_document = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "new_document", params, "NewDocumentReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_message.Params
@@ -130,9 +134,10 @@ end
 ---
 ---Use this for messages that require immediate attention from the user
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_message.Params
-M.show_message = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "show_message", params)
+M.show_message = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "show_message", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_question.Params
@@ -145,10 +150,11 @@ end
 ---
 ---Use this for a modal dialog that the user can accept or cancel
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_question.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.show_question.Reply)
-M.show_question = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "show_question", params, "ShowQuestionReply", callback)
+M.show_question = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "show_question", params, "ShowQuestionReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_dialog.Params
@@ -159,10 +165,11 @@ end
 ---
 ---Use this for a modal dialog that the user can only accept
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_dialog.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.show_dialog.Reply)
-M.show_dialog = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "show_dialog", params, "ShowDialogReply", callback)
+M.show_dialog = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "show_dialog", params, "ShowDialogReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_prompt.Params
@@ -175,10 +182,11 @@ end
 ---
 ---Use this for an input box where user can input any string
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_prompt.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.show_prompt.Reply)
-M.show_prompt = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "show_prompt", params, "ShowPromptReply", callback)
+M.show_prompt = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "show_prompt", params, "ShowPromptReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.ask_for_password.Params
@@ -188,10 +196,11 @@ end
 ---
 ---Use this for an input box where the user can input a password
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.ask_for_password.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.ask_for_password.Reply)
-M.ask_for_password = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "ask_for_password", params, "AskForPasswordReply", callback)
+M.ask_for_password = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "ask_for_password", params, "AskForPasswordReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.prompt_state.Params
@@ -202,9 +211,10 @@ end
 ---
 ---Languages like R allow users to change the way their prompts look. This event signals a change in the prompt configuration.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.prompt_state.Params
-M.prompt_state = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "prompt_state", params)
+M.prompt_state = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "prompt_state", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.working_directory.Params
@@ -214,9 +224,10 @@ end
 ---
 ---This event signals a change in the working direcotry of the interpreter
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.working_directory.Params
-M.working_directory = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "working_directory", params)
+M.working_directory = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "working_directory", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.debug_sleep.Params
@@ -226,10 +237,11 @@ end
 ---
 ---Useful for testing in the backend a long running frontend method
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.debug_sleep.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.debug_sleep.Reply)
-M.debug_sleep = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "debug_sleep", params, "DebugSleepReply", callback)
+M.debug_sleep = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "debug_sleep", params, "DebugSleepReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.execute_command.Params
@@ -239,10 +251,11 @@ end
 ---
 ---Use this to execute a Positron command from the backend (like from a runtime), and wait for the command to finish
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.execute_command.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.execute_command.Reply)
-M.execute_command = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "execute_command", params, "ExecuteCommandReply", callback)
+M.execute_command = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "execute_command", params, "ExecuteCommandReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.evaluate_when_clause.Params
@@ -252,10 +265,11 @@ end
 ---
 ---Use this to evaluate a `when` clause of context keys in the frontend
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.evaluate_when_clause.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.evaluate_when_clause.Reply)
-M.evaluate_when_clause = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "evaluate_when_clause", params, "EvaluateWhenClauseReply", callback)
+M.evaluate_when_clause = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "evaluate_when_clause", params, "EvaluateWhenClauseReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.execute_code.Params
@@ -268,10 +282,11 @@ end
 ---
 ---Use this to execute code in a Positron runtime
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.execute_code.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.execute_code.Reply)
-M.execute_code = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "execute_code", params, "ExecuteCodeReply", callback)
+M.execute_code = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "execute_code", params, "ExecuteCodeReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.open_workspace.Params
@@ -282,18 +297,20 @@ end
 ---
 ---Use this to open a workspace in Positron
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.open_workspace.Params
-M.open_workspace = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "open_workspace", params)
+M.open_workspace = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "open_workspace", params)
 end
 
 ---Path to the workspace folder
 ---
 ---Returns the path to the workspace folder, or first folder if there are multiple.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.workspace_folder.Reply)
-M.workspace_folder = function(kernel, callback)
-	return util.rpc_request(kernel, "positron.ui", "workspace_folder", nil, "WorkspaceFolderReply", callback)
+M.workspace_folder = function(kernel, comm_id, callback)
+	return util.rpc_request(kernel, comm_id, "workspace_folder", nil, "WorkspaceFolderReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.set_editor_selections.Params
@@ -303,9 +320,10 @@ end
 ---
 ---Use this to set the selection ranges/cursor in the editor
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.set_editor_selections.Params
-M.set_editor_selections = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "set_editor_selections", params)
+M.set_editor_selections = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "set_editor_selections", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.modify_editor_selections.Params
@@ -316,19 +334,21 @@ end
 ---
 ---Use this to edit a set of selection ranges/cursor in the editor
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.modify_editor_selections.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.modify_editor_selections.Reply)
-M.modify_editor_selections = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "modify_editor_selections", params, "ModifyEditorSelectionsReply", callback)
+M.modify_editor_selections = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "modify_editor_selections", params, "ModifyEditorSelectionsReply", callback)
 end
 
 ---Context metadata for the last editor
 ---
 ---Returns metadata such as file path for the last editor selected by the user. The result may be undefined if there are no active editors.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.last_active_editor_context.Reply)
-M.last_active_editor_context = function(kernel, callback)
-	return util.rpc_request(kernel, "positron.ui", "last_active_editor_context", nil, "LastActiveEditorContextReply", callback)
+M.last_active_editor_context = function(kernel, comm_id, callback)
+	return util.rpc_request(kernel, comm_id, "last_active_editor_context", nil, "LastActiveEditorContextReply", callback)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_url.Params
@@ -339,9 +359,10 @@ end
 ---
 ---Causes the URL to be displayed inside the Viewer pane, and makes the Viewer pane visible.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_url.Params
-M.show_url = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "show_url", params)
+M.show_url = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "show_url", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_html_file.Params
@@ -354,9 +375,10 @@ end
 ---
 ---Causes the HTML file to be shown in Positron.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_html_file.Params
-M.show_html_file = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "show_html_file", params)
+M.show_html_file = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "show_html_file", params)
 end
 
 ---@class jet.ark.comm.ui_frontend.open_with_system.Params
@@ -364,17 +386,19 @@ end
 
 ---Open a file or folder with the system default application
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.open_with_system.Params
-M.open_with_system = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "open_with_system", params)
+M.open_with_system = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "open_with_system", params)
 end
 
 ---Webview preloads should be flushed
 ---
 ---This event is used to signal that the stored messages the front-end replays when constructing multi-output plots should be reset. This happens for things like a holoviews extension being changed.
 ---@param kernel jet.Kernel
-M.clear_webview_preloads = function(kernel)
-	return util.rpc_request(kernel, "positron.ui", "clear_webview_preloads", nil)
+---@param comm_id string
+M.clear_webview_preloads = function(kernel, comm_id)
+	return util.rpc_request(kernel, comm_id, "clear_webview_preloads", nil)
 end
 
 return M

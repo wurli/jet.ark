@@ -25,9 +25,10 @@ local M = {}
 ---
 ---Typically fired when the plot component has been resized by the user. This notification is useful to produce accurate pre-renderings of plots.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.did_change_plots_render_settings.Params
-M.did_change_plots_render_settings = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "did_change_plots_render_settings", params)
+M.did_change_plots_render_settings = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "did_change_plots_render_settings", params)
 end
 
 ---@class jet.ark.comm.ui_backend.frontend_ready.Params
@@ -37,9 +38,10 @@ end
 ---
 ---This notification is sent by the frontend after the UI comm has been established. The backend uses this signal to run session initialization hooks that may need to communicate with the frontend via RPCs (e.g. rstudioapi calls).
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.frontend_ready.Params
-M.frontend_ready = function(kernel, params)
-	return util.rpc_request(kernel, "positron.ui", "frontend_ready", params)
+M.frontend_ready = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "frontend_ready", params)
 end
 
 ---@class jet.ark.comm.ui_backend.call_method.Params
@@ -50,10 +52,11 @@ end
 ---
 ---Unlike other RPC methods, `call_method` calls into methods implemented in the interpreter and returns the result back to the frontend using an implementation-defined serialization scheme.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.call_method.Params
 ---@param callback? fun(res: jet.ark.comm.ui_backend.call_method.Reply)
-M.call_method = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "call_method", params, "CallMethodReply", callback)
+M.call_method = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "call_method", params, "CallMethodReply", callback)
 end
 
 ---@class jet.ark.comm.ui_backend.evaluate_code.Params
@@ -63,10 +66,11 @@ end
 ---
 ---Execute a code fragment silently and return a JSON-serialized result.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.evaluate_code.Params
 ---@param callback? fun(res: jet.ark.comm.ui_backend.evaluate_code.Reply)
-M.evaluate_code = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.ui", "evaluate_code", params, "EvaluateCodeReply", callback)
+M.evaluate_code = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "evaluate_code", params, "EvaluateCodeReply", callback)
 end
 
 return M

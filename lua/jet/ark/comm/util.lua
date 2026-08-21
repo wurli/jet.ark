@@ -7,7 +7,7 @@ local M = {}
 ---@param reply_method? string
 ---@param callback? fun(res: any)
 M.rpc_request = function(kernel, comm, method, params, reply_method, callback)
-	local msg_id = kernel:comm_send(kernel.comms[comm], {
+	local msg_id = kernel:comm_send(comm, {
 		jsonrpc = "2.0",
 		-- The id field makes this a JSON-RPC message according to Ark:
 		-- https://github.com/posit-dev/positron/issues/7448

@@ -16,9 +16,10 @@ local M = {}
 
 ---Request to show help in the frontend
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.help_frontend.show_help.Params
-M.show_help = function(kernel, params)
-	return util.rpc_request(kernel, "positron.help", "show_help", params)
+M.show_help = function(kernel, comm_id, params)
+	return util.rpc_request(kernel, comm_id, "show_help", params)
 end
 
 return M

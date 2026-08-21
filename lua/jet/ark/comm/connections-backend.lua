@@ -44,10 +44,11 @@ local M = {}
 ---
 ---List objects within a data source, such as schemas, catalogs, tables and views.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.list_objects.Params
 ---@param callback? fun(res: jet.ark.comm.connections_backend.list_objects.Reply)
-M.list_objects = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.connections", "list_objects", params, "ListObjectsReply", callback)
+M.list_objects = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "list_objects", params, "ListObjectsReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.list_fields.Params
@@ -57,10 +58,11 @@ end
 ---
 ---List fields of an object, such as columns of a table or view.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.list_fields.Params
 ---@param callback? fun(res: jet.ark.comm.connections_backend.list_fields.Reply)
-M.list_fields = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.connections", "list_fields", params, "ListFieldsReply", callback)
+M.list_fields = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "list_fields", params, "ListFieldsReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.contains_data.Params
@@ -70,10 +72,11 @@ end
 ---
 ---Check if an object contains data, such as a table or view.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.contains_data.Params
 ---@param callback? fun(res: jet.ark.comm.connections_backend.contains_data.Reply)
-M.contains_data = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.connections", "contains_data", params, "ContainsDataReply", callback)
+M.contains_data = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "contains_data", params, "ContainsDataReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.get_icon.Params
@@ -83,10 +86,11 @@ end
 ---
 ---Get icon of an object, such as a table or view.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.get_icon.Params
 ---@param callback? fun(res: jet.ark.comm.connections_backend.get_icon.Reply)
-M.get_icon = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.connections", "get_icon", params, "GetIconReply", callback)
+M.get_icon = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "get_icon", params, "GetIconReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.preview_object.Params
@@ -96,10 +100,11 @@ end
 ---
 ---Preview object data, such as a table or view.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.preview_object.Params
 ---@param callback? fun(res: jet.ark.comm.connections_backend.preview_object.Reply)
-M.preview_object = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.connections", "preview_object", params, "PreviewObjectReply", callback)
+M.preview_object = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "preview_object", params, "PreviewObjectReply", callback)
 end
 
 ---@class jet.ark.comm.connections_backend.get_metadata.Params
@@ -109,10 +114,11 @@ end
 ---
 ---A connection has tied metadata such as an icon, the host, etc.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.get_metadata.Params
 ---@param callback? fun(res: jet.ark.comm.connections_backend.get_metadata.Reply)
-M.get_metadata = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.connections", "get_metadata", params, "GetMetadataReply", callback)
+M.get_metadata = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "get_metadata", params, "GetMetadataReply", callback)
 end
 
 return M

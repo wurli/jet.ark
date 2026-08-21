@@ -64,9 +64,10 @@ local M = {}
 ---
 ---Returns a list of all the variables in the current session.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param callback? fun(res: jet.ark.comm.variables_backend.list.Reply)
-M.list = function(kernel, callback)
-	return util.rpc_request(kernel, "positron.variables", "list", nil, "ListReply", callback)
+M.list = function(kernel, comm_id, callback)
+	return util.rpc_request(kernel, comm_id, "list", nil, "ListReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.clear.Params
@@ -76,10 +77,11 @@ end
 ---
 ---Clears (deletes) all variables in the current session.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.clear.Params
 ---@param callback? fun(res: jet.ark.comm.variables_backend.clear.Reply)
-M.clear = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "clear", params, "ClearReply", callback)
+M.clear = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "clear", params, "ClearReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.delete.Params
@@ -89,10 +91,11 @@ end
 ---
 ---Deletes the named variables from the current session.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.delete.Params
 ---@param callback? fun(res: jet.ark.comm.variables_backend.delete.Reply)
-M.delete = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "delete", params, "DeleteReply", callback)
+M.delete = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "delete", params, "DeleteReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.inspect.Params
@@ -102,10 +105,11 @@ end
 ---
 ---Returns the children of a variable, as an array of variables.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.inspect.Params
 ---@param callback? fun(res: jet.ark.comm.variables_backend.inspect.Reply)
-M.inspect = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "inspect", params, "InspectReply", callback)
+M.inspect = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "inspect", params, "InspectReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.clipboard_format.Params
@@ -116,10 +120,11 @@ end
 ---
 ---Requests a formatted representation of a variable for copying to the clipboard.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.clipboard_format.Params
 ---@param callback? fun(res: jet.ark.comm.variables_backend.clipboard_format.Reply)
-M.clipboard_format = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "clipboard_format", params, "ClipboardFormatReply", callback)
+M.clipboard_format = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "clipboard_format", params, "ClipboardFormatReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.view.Params
@@ -129,10 +134,11 @@ end
 ---
 ---Request that the runtime open a data viewer to display the data in a variable.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.view.Params
 ---@param callback? fun(res: jet.ark.comm.variables_backend.view.Reply)
-M.view = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "view", params, "ViewReply", callback)
+M.view = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "view", params, "ViewReply", callback)
 end
 
 ---@class jet.ark.comm.variables_backend.query_table_summary.Params
@@ -143,10 +149,11 @@ end
 ---
 ---Request a data summary for a table variable.
 ---@param kernel jet.Kernel
+---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.query_table_summary.Params
 ---@param callback? fun(res: jet.ark.comm.variables_backend.query_table_summary.Reply)
-M.query_table_summary = function(kernel, params, callback)
-	return util.rpc_request(kernel, "positron.variables", "query_table_summary", params, "QueryTableSummaryReply", callback)
+M.query_table_summary = function(kernel, comm_id, params, callback)
+	return util.rpc_request(kernel, comm_id, "query_table_summary", params, "QueryTableSummaryReply", callback)
 end
 
 return M
