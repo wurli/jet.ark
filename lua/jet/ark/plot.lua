@@ -24,12 +24,12 @@ end
 ---@param data jet.ark.comm.plot_frontend.show.Params
 M.comm_open_handler = function(k, comm_id, data)
 	local pre_render_settings = data.pre_render and data.pre_render.settings and data.pre_render.settings or {}
-	local params = win_to_render_settings(k:open_images(), pre_render_settings.format)
+	local params = win_to_render_settings(k:img_open(), pre_render_settings.format)
 	---@diagnostic disable-next-line: param-type-mismatch
 	require("jet.ark.comm.plot-backend").render(k, comm_id, params, function(res)
-		local file = k:save_image(res.data, res.mime_type, comm_id .. "_0001")
+		local file = k:img_save(res.data, res.mime_type, comm_id .. "_0001")
 		if file then
-			k:open_images(vim.fs.basename(file))
+			k:img_open(vim.fs.basename(file))
 		end
 		return true
 	end)
@@ -93,10 +93,10 @@ local update_plot_size = debounce(200, function(k)
 				---@diagnostic disable-next-line: param-type-mismatch
 				win_to_render_settings(win),
 				function(res)
-					vim.fs.rm(k:image_dir() .. "/" .. k.img.img_file, { force = true })
-					local file = k:save_image(res.data, res.mime_type, timestamp .. "_" .. comm_id .. "_" .. iteration)
+					vim.fs.rm(k:img_dir() .. "/" .. k.img.img_file, { force = true })
+					local file = k:img_save(res.data, res.mime_type, timestamp .. "_" .. comm_id .. "_" .. iteration)
 					if file then
-						k:open_images(vim.fs.basename(file))
+						k:img_open(vim.fs.basename(file))
 					end
 					return true
 				end
