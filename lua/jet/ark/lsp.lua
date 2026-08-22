@@ -8,7 +8,7 @@ M.start_ark_lsp = function(kernel)
 	local start_lsp = function(k)
 		---@diagnostic disable-next-line: unnecessary-if
 		-- Prevents starting multiple LSPs on the same kernel
-		if k.comms.lsp or lsp_starting then
+		if k.open_comms.lsp or lsp_starting then
 			return
 		end
 

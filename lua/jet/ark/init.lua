@@ -7,6 +7,7 @@ local M = {}
 M.setup = function(opts)
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
+	require("jet.ark.plot").setup()
 
 	----------------------------
 	--    Ark Kernel Setup    --
@@ -28,6 +29,7 @@ M.setup = function(opts)
 	table.insert(jet_cfg.hooks.on_kernel_init, function(k)
 		if k.spec_path == config.data.kernelspec_path then
 			k.filetype = "r"
+			k.known_comms["positron.plot"] = require("jet.ark.plot").comm_open_handler
 		end
 	end)
 
@@ -36,13 +38,25 @@ M.setup = function(opts)
 	----------------------------
 
 	---@param k jet.Kernel
-	jet_cfg.hooks.on_lua_client_start.start_ark_lsp = function(k)
+	jet_cfg.hooks.on_lua_client_start.start_comms = function(k)
 		-- We don't need to open a listener on the UI comm since right now only
 		-- `working_directory` and `prompt_state` come through
 		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
 			-- This tells Ark to listen for ui comm messages, e.g. like
 			-- setConsoleWidth below.
-			k:comm_open("positron.ui", {})
+			local ui_comm_id = k:comm_open("positron.ui")
+
+			require("jet.ark.comm.ui-backend").frontend_ready(k, ui_comm_id, { start_type = "new" })
+			require("jet.ark.comm.ui-backend").did_change_plots_render_settings(k, ui_comm_id, {
+				settings = {
+					format = "png",
+					pixel_ratio = 4,
+					size = {
+						height = 400 * 3,
+						width = 640 * 3,
+					},
+				},
+			})
 			k:comm_open("positron.help", {}, { listener = require("jet.ark.help").listener })
 			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
 			lsp.start_ark_lsp(k)
@@ -78,13 +92,13 @@ M.setup = function(opts)
 					end
 
 					if kernel.spec_path == config.data.kernelspec_path then
-						local comm_id = kernel.comms["positron.ui"]
-						---@diagnostic disable-next-line: unnecessary-if
-						if comm_id then
-							require("jet.ark.comm.ui-backend").call_method(kernel, {
-								method = "setConsoleWidth",
-								params = { vim.api.nvim_win_get_width(win) - 2 },
-							})
+						for comm_id, comm in pairs(kernel.open_comms) do
+							if comm.name == "positron.ui" then
+								require("jet.ark.comm.ui-backend").call_method(kernel, comm_id, {
+									method = "setConsoleWidth",
+									params = { vim.api.nvim_win_get_width(win) - 2 },
+								})
+							end
 						end
 					end
 				end

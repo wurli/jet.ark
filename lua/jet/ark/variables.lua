@@ -11,9 +11,9 @@ M.setup = function()
 				vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = buf, silent = true })
 			end
 
-			require("jet.ark.comm.variables-backend").list(k, function(res)
-				vim.print(res)
-			end)
+			-- require("jet.ark.comm.variables-backend").list(k, function(res)
+			-- 	vim.print(res)
+			-- end)
 
 			if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
 				vim.api.nvim_open_win(buf, true, {
@@ -26,7 +26,7 @@ M.setup = function()
 	end, { nargs = 0 })
 end
 
----@param _ jet.jupyter.msg
+---@param _ jupyter.Msg
 M.listener = function(_)
 	-- vim.print(msg)
 end

@@ -18,7 +18,7 @@ end
 local win = -99
 local buf = -99
 
----@param msg jet.jupyter.msg
+---@param msg jupyter.Msg
 M.listener = function(msg)
 	local data = msg.content.data
 

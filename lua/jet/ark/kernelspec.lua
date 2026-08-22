@@ -43,7 +43,8 @@ M.generate = function()
 	-- See https://github.com/posit-dev/ark/issues/1311 for why this is needed
 	-- and not configurable.
 	table.insert(argv, "--session-mode")
-	table.insert(argv, "notebook")
+	-- table.insert(argv, "notebook")
+	table.insert(argv, "console")
 
 	if argv_config.r_args and #argv_config.r_args > 0 then
 		table.insert(argv, "--")
