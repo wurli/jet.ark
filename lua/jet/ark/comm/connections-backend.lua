@@ -46,7 +46,7 @@ local M = {}
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.list_objects.Params
----@param callback? fun(res: jet.ark.comm.connections_backend.list_objects.Reply)
+---@param callback? fun(res: jet.ark.comm.connections_backend.list_objects.Reply): boolean
 M.list_objects = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "list_objects", params, "ListObjectsReply", callback)
 end
@@ -60,7 +60,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.list_fields.Params
----@param callback? fun(res: jet.ark.comm.connections_backend.list_fields.Reply)
+---@param callback? fun(res: jet.ark.comm.connections_backend.list_fields.Reply): boolean
 M.list_fields = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "list_fields", params, "ListFieldsReply", callback)
 end
@@ -74,7 +74,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.contains_data.Params
----@param callback? fun(res: jet.ark.comm.connections_backend.contains_data.Reply)
+---@param callback? fun(res: jet.ark.comm.connections_backend.contains_data.Reply): boolean
 M.contains_data = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "contains_data", params, "ContainsDataReply", callback)
 end
@@ -88,7 +88,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.get_icon.Params
----@param callback? fun(res: jet.ark.comm.connections_backend.get_icon.Reply)
+---@param callback? fun(res: jet.ark.comm.connections_backend.get_icon.Reply): boolean
 M.get_icon = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "get_icon", params, "GetIconReply", callback)
 end
@@ -102,7 +102,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.preview_object.Params
----@param callback? fun(res: jet.ark.comm.connections_backend.preview_object.Reply)
+---@param callback? fun(res: jet.ark.comm.connections_backend.preview_object.Reply): boolean
 M.preview_object = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "preview_object", params, "PreviewObjectReply", callback)
 end
@@ -116,7 +116,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.connections_backend.get_metadata.Params
----@param callback? fun(res: jet.ark.comm.connections_backend.get_metadata.Reply)
+---@param callback? fun(res: jet.ark.comm.connections_backend.get_metadata.Reply): boolean
 M.get_metadata = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "get_metadata", params, "GetMetadataReply", callback)
 end

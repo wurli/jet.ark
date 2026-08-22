@@ -307,7 +307,7 @@ class Emitter:
 
         if result_type is not None:
             reply_method = "".join(w.capitalize() for w in name.split("_")) + "Reply"
-            lines.append(f"---@param callback? fun(res: {result_type})")
+            lines.append(f"---@param callback? fun(res: {result_type}): boolean")
             lines.append(f"M.{name} = function({params_sig}, callback)")
             lines.append(
                 f'\treturn util.rpc_request(kernel, comm_id, "{name}", {params_arg}, "{reply_method}", callback)'

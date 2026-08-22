@@ -54,7 +54,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.call_method.Params
----@param callback? fun(res: jet.ark.comm.ui_backend.call_method.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_backend.call_method.Reply): boolean
 M.call_method = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "call_method", params, "CallMethodReply", callback)
 end
@@ -68,7 +68,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.evaluate_code.Params
----@param callback? fun(res: jet.ark.comm.ui_backend.evaluate_code.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_backend.evaluate_code.Reply): boolean
 M.evaluate_code = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "evaluate_code", params, "EvaluateCodeReply", callback)
 end

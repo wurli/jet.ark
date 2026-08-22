@@ -65,7 +65,7 @@ local M = {}
 ---Returns a list of all the variables in the current session.
 ---@param kernel jet.Kernel
 ---@param comm_id string
----@param callback? fun(res: jet.ark.comm.variables_backend.list.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.list.Reply): boolean
 M.list = function(kernel, comm_id, callback)
 	return util.rpc_request(kernel, comm_id, "list", nil, "ListReply", callback)
 end
@@ -79,7 +79,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.clear.Params
----@param callback? fun(res: jet.ark.comm.variables_backend.clear.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.clear.Reply): boolean
 M.clear = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "clear", params, "ClearReply", callback)
 end
@@ -93,7 +93,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.delete.Params
----@param callback? fun(res: jet.ark.comm.variables_backend.delete.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.delete.Reply): boolean
 M.delete = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "delete", params, "DeleteReply", callback)
 end
@@ -107,7 +107,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.inspect.Params
----@param callback? fun(res: jet.ark.comm.variables_backend.inspect.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.inspect.Reply): boolean
 M.inspect = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "inspect", params, "InspectReply", callback)
 end
@@ -122,7 +122,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.clipboard_format.Params
----@param callback? fun(res: jet.ark.comm.variables_backend.clipboard_format.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.clipboard_format.Reply): boolean
 M.clipboard_format = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "clipboard_format", params, "ClipboardFormatReply", callback)
 end
@@ -136,7 +136,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.view.Params
----@param callback? fun(res: jet.ark.comm.variables_backend.view.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.view.Reply): boolean
 M.view = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "view", params, "ViewReply", callback)
 end
@@ -151,7 +151,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_backend.query_table_summary.Params
----@param callback? fun(res: jet.ark.comm.variables_backend.query_table_summary.Reply)
+---@param callback? fun(res: jet.ark.comm.variables_backend.query_table_summary.Reply): boolean
 M.query_table_summary = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "query_table_summary", params, "QueryTableSummaryReply", callback)
 end

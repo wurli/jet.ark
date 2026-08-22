@@ -398,7 +398,7 @@ local M = {}
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.open_dataset.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_dataset.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_dataset.Reply): boolean
 M.open_dataset = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "open_dataset", params, "OpenDatasetReply", callback)
 end
@@ -412,7 +412,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.get_schema.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_schema.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_schema.Reply): boolean
 M.get_schema = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "get_schema", params, "GetSchemaReply", callback)
 end
@@ -425,7 +425,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.search_schema.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.search_schema.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.search_schema.Reply): boolean
 M.search_schema = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "search_schema", params, "SearchSchemaReply", callback)
 end
@@ -440,7 +440,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.get_data_values.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_data_values.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_data_values.Reply): boolean
 M.get_data_values = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "get_data_values", params, "GetDataValuesReply", callback)
 end
@@ -453,7 +453,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.get_row_labels.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_row_labels.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_row_labels.Reply): boolean
 M.get_row_labels = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "get_row_labels", params, "GetRowLabelsReply", callback)
 end
@@ -468,7 +468,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.export_data_selection.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.export_data_selection.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.export_data_selection.Reply): boolean
 M.export_data_selection = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "export_data_selection", params, "ExportDataSelectionReply", callback)
 end
@@ -485,7 +485,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.convert_to_code.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.convert_to_code.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.convert_to_code.Reply): boolean
 M.convert_to_code = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "convert_to_code", params, "ConvertToCodeReply", callback)
 end
@@ -495,7 +495,7 @@ end
 ---Suggest code syntax for code conversion based on the current backend state
 ---@param kernel jet.Kernel
 ---@param comm_id string
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.suggest_code_syntax.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.suggest_code_syntax.Reply): boolean
 M.suggest_code_syntax = function(kernel, comm_id, callback)
 	return util.rpc_request(kernel, comm_id, "suggest_code_syntax", nil, "SuggestCodeSyntaxReply", callback)
 end
@@ -509,7 +509,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.set_column_filters.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_column_filters.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_column_filters.Reply): boolean
 M.set_column_filters = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "set_column_filters", params, "SetColumnFiltersReply", callback)
 end
@@ -523,7 +523,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.set_row_filters.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_row_filters.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_row_filters.Reply): boolean
 M.set_row_filters = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "set_row_filters", params, "SetRowFiltersReply", callback)
 end
@@ -537,7 +537,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.set_sort_columns.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_sort_columns.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_sort_columns.Reply): boolean
 M.set_sort_columns = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "set_sort_columns", params, "SetSortColumnsReply", callback)
 end
@@ -553,7 +553,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.get_column_profiles.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_column_profiles.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_column_profiles.Reply): boolean
 M.get_column_profiles = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "get_column_profiles", params, "GetColumnProfilesReply", callback)
 end
@@ -567,7 +567,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.data_explorer_backend.set_dataset_import_options.Params
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_dataset_import_options.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_dataset_import_options.Reply): boolean
 M.set_dataset_import_options = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "set_dataset_import_options", params, "SetDatasetImportOptionsReply", callback)
 end
@@ -577,7 +577,7 @@ end
 ---Creates a new, independent data explorer comm for the same underlying data. The new comm has its own state (filters, sorts). Used when promoting an inline notebook data explorer to a full data explorer panel.
 ---@param kernel jet.Kernel
 ---@param comm_id string
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_data_explorer.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.open_data_explorer.Reply): boolean
 M.open_data_explorer = function(kernel, comm_id, callback)
 	return util.rpc_request(kernel, comm_id, "open_data_explorer", nil, "OpenDataExplorerReply", callback)
 end
@@ -587,7 +587,7 @@ end
 ---Request the current backend state (table metadata, explorer state, and features)
 ---@param kernel jet.Kernel
 ---@param comm_id string
----@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_state.Reply)
+---@param callback? fun(res: jet.ark.comm.data_explorer_backend.get_state.Reply): boolean
 M.get_state = function(kernel, comm_id, callback)
 	return util.rpc_request(kernel, comm_id, "get_state", nil, "GetStateReply", callback)
 end

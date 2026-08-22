@@ -5,7 +5,7 @@ local M = {}
 ---@param method string
 ---@param params? table
 ---@param reply_method? string
----@param callback? fun(res: any)
+---@param callback? fun(res: any): boolean
 M.rpc_request = function(kernel, comm, method, params, reply_method, callback)
 	local msg_id = kernel:comm_send(comm, {
 		jsonrpc = "2.0",
@@ -19,9 +19,9 @@ M.rpc_request = function(kernel, comm, method, params, reply_method, callback)
 	if callback then
 		kernel.on_message_received[msg_id] = function(_, m)
 			if
-				-- m.parent_header
-				-- and m.parent_header == msg_id
-				m.content
+				m.parent_header
+				and m.parent_header.msg_id == msg_id
+				and m.content
 				and m.content.data
 				and m.content.data.method == reply_method
 			then

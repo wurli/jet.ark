@@ -122,7 +122,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.new_document.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.new_document.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.new_document.Reply): boolean
 M.new_document = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "new_document", params, "NewDocumentReply", callback)
 end
@@ -152,7 +152,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_question.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.show_question.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.show_question.Reply): boolean
 M.show_question = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "show_question", params, "ShowQuestionReply", callback)
 end
@@ -167,7 +167,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_dialog.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.show_dialog.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.show_dialog.Reply): boolean
 M.show_dialog = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "show_dialog", params, "ShowDialogReply", callback)
 end
@@ -184,7 +184,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_prompt.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.show_prompt.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.show_prompt.Reply): boolean
 M.show_prompt = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "show_prompt", params, "ShowPromptReply", callback)
 end
@@ -198,7 +198,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.ask_for_password.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.ask_for_password.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.ask_for_password.Reply): boolean
 M.ask_for_password = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "ask_for_password", params, "AskForPasswordReply", callback)
 end
@@ -239,7 +239,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.debug_sleep.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.debug_sleep.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.debug_sleep.Reply): boolean
 M.debug_sleep = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "debug_sleep", params, "DebugSleepReply", callback)
 end
@@ -253,7 +253,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.execute_command.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.execute_command.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.execute_command.Reply): boolean
 M.execute_command = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "execute_command", params, "ExecuteCommandReply", callback)
 end
@@ -267,7 +267,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.evaluate_when_clause.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.evaluate_when_clause.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.evaluate_when_clause.Reply): boolean
 M.evaluate_when_clause = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "evaluate_when_clause", params, "EvaluateWhenClauseReply", callback)
 end
@@ -284,7 +284,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.execute_code.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.execute_code.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.execute_code.Reply): boolean
 M.execute_code = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "execute_code", params, "ExecuteCodeReply", callback)
 end
@@ -308,7 +308,7 @@ end
 ---Returns the path to the workspace folder, or first folder if there are multiple.
 ---@param kernel jet.Kernel
 ---@param comm_id string
----@param callback? fun(res: jet.ark.comm.ui_frontend.workspace_folder.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.workspace_folder.Reply): boolean
 M.workspace_folder = function(kernel, comm_id, callback)
 	return util.rpc_request(kernel, comm_id, "workspace_folder", nil, "WorkspaceFolderReply", callback)
 end
@@ -336,7 +336,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.modify_editor_selections.Params
----@param callback? fun(res: jet.ark.comm.ui_frontend.modify_editor_selections.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.modify_editor_selections.Reply): boolean
 M.modify_editor_selections = function(kernel, comm_id, params, callback)
 	return util.rpc_request(kernel, comm_id, "modify_editor_selections", params, "ModifyEditorSelectionsReply", callback)
 end
@@ -346,7 +346,7 @@ end
 ---Returns metadata such as file path for the last editor selected by the user. The result may be undefined if there are no active editors.
 ---@param kernel jet.Kernel
 ---@param comm_id string
----@param callback? fun(res: jet.ark.comm.ui_frontend.last_active_editor_context.Reply)
+---@param callback? fun(res: jet.ark.comm.ui_frontend.last_active_editor_context.Reply): boolean
 M.last_active_editor_context = function(kernel, comm_id, callback)
 	return util.rpc_request(kernel, comm_id, "last_active_editor_context", nil, "LastActiveEditorContextReply", callback)
 end
