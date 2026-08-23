@@ -1,40 +1,5 @@
 local M = {}
 
---@class jet.ark.comm.plot_backend.render.Params
---@field size? jet.ark.comm.plot_backend.plot_size The requested size of the plot. If not provided, the plot will be rendered at its intrinsic size.
---@field pixel_ratio number The pixel ratio of the display device
---@field format jet.ark.comm.plot_backend.plot_render_format The requested plot format
-
----@param win integer
----@param format? jet.ark.comm.plot_backend.plot_render_format
----@return jet.ark.comm.plot_backend.plot_render_settings
-local win_to_render_settings = function(win, format)
-	return {
-		format = format or "png",
-		pixel_ratio = 2,
-		size = {
-			height = math.floor(vim.api.nvim_win_get_height(win) * 1.8) * 20,
-			width = vim.api.nvim_win_get_width(win) * 20,
-		},
-	}
-end
-
----@param k jet.Kernel
----@param comm_id string
----@param data jet.ark.comm.plot_frontend.show.Params
-M.comm_open_handler = function(k, comm_id, data)
-	local pre_render_settings = data.pre_render and data.pre_render.settings and data.pre_render.settings or {}
-	local params = win_to_render_settings(k:img_open(), pre_render_settings.format)
-	---@diagnostic disable-next-line: param-type-mismatch
-	require("jet.ark.comm.plot-backend").render(k, comm_id, params, function(res)
-		local file = k:img_save(res.data, res.mime_type, comm_id .. "_0001")
-		if file then
-			k:img_open(vim.fs.basename(file))
-		end
-		return true
-	end)
-end
-
 ---Debounce a function: delays execution until `ms` milliseconds have passed
 ---since the last call. Rapid calls reset the timer.
 ---@generic T
@@ -67,43 +32,92 @@ local debounce = function(delay, f)
 	return debounced, cancel
 end
 
+---@param win integer
+---@param format? jet.ark.comm.plot_backend.plot_render_format
+---@return jet.ark.comm.plot_backend.plot_render_settings
+local win_to_render_settings = function(win, format)
+	return {
+		format = format or "png",
+		pixel_ratio = 2,
+		size = {
+			height = math.floor(vim.api.nvim_win_get_height(win) * 1.8) * 10,
+			width = vim.api.nvim_win_get_width(win) * 10,
+		},
+	}
+end
+
 ---@param k jet.Kernel
-local update_plot_size = debounce(200, function(k)
-	if k.img and k.img.img_file then
-		local win = k.img:win()
-		if not win then
-			return
-		end
-
-		-- Currently Snacks doesn't refresh the displayed image when the
-		-- underlying file changes, so instead of fighting just append a number
-		-- to the filename and increment whenever the plot updates.
-		local timestamp, comm_id, iteration =
-			k.img.img_file:match("(%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d)_([^._]+)_(%d%d%d%d)%.[^.]+$")
-		timestamp = timestamp or ""
-		iteration = iteration and string.format("%04d", (tonumber(iteration) or 0) + 1) or ""
-
-		if comm_id then
-			require("jet.ark.comm.ui-backend").did_change_plots_render_settings(k, comm_id, {
-				settings = win_to_render_settings(win),
-			})
-			require("jet.ark.comm.plot-backend").render(
-				k,
-				comm_id,
-				---@diagnostic disable-next-line: param-type-mismatch
-				win_to_render_settings(win),
-				function(res)
-					vim.fs.rm(k:img_dir() .. "/" .. k.img.img_file, { force = true })
-					local file = k:img_save(res.data, res.mime_type, timestamp .. "_" .. comm_id .. "_" .. iteration)
-					if file then
-						k:img_open(vim.fs.basename(file))
-					end
-					return true
-				end
-			)
-		end
+local resize_curr_plot = function(k)
+	if not k.img or not k.img.img_file then
+		return
 	end
-end)
+
+	local win = k.img:win()
+	if not win then
+		return
+	end
+
+	-- Currently Snacks doesn't refresh the displayed image when the
+	-- underlying file changes, so instead of fighting just append a number
+	-- to the filename and increment whenever the plot updates.
+	local timestamp, comm_id, iteration =
+		k.img.img_file:match("(%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d)_([^._]+)_(%d%d%d%d)%.[^.]+$")
+	timestamp = timestamp or ""
+	iteration = iteration and string.format("%04d", (tonumber(iteration) or 0) + 1) or ""
+
+	if not comm_id then
+		return
+	end
+
+	local new_settings = win_to_render_settings(win)
+
+	-- Don't rerender plots if the size hasn't actually changed. This might
+	-- happen, e.g. if the window was closed and reopened.
+	if
+		k.metadata.plot_sizes
+		and k.metadata.plot_sizes[comm_id]
+		and new_settings.size.width == k.metadata.plot_sizes[comm_id].width
+		and new_settings.size.height == k.metadata.plot_sizes[comm_id].height
+	then
+		return
+	end
+
+	-- require("jet.ark.comm.ui-backend").did_change_plots_render_settings(k, comm_id, {
+	-- 	settings = new_settings,
+	-- })
+	---@diagnostic disable-next-line: param-type-mismatch
+	require("jet.ark.comm.plot-backend").render(k, comm_id, new_settings, function(res)
+		vim.fs.rm(k:img_dir() .. "/" .. k.img.img_file, { force = true })
+		local file = k:img_save(res.data, res.mime_type, timestamp .. "_" .. comm_id .. "_" .. iteration)
+		if file then
+			k.metadata.plot_sizes = k.metadata.plot_sizes or {}
+			k.metadata.plot_sizes[comm_id] = new_settings.size
+			k:img_open(vim.fs.basename(file))
+		end
+		return true
+	end)
+end
+
+---@param k jet.Kernel
+---@param comm_id string
+---@param data jet.ark.comm.plot_frontend.show.Params
+M.comm_open_handler = function(k, comm_id, data)
+	local pre_render_settings = data.pre_render and data.pre_render.settings and data.pre_render.settings or {}
+	local params = win_to_render_settings(k:img_open(), pre_render_settings.format)
+	---@diagnostic disable-next-line: param-type-mismatch
+	require("jet.ark.comm.plot-backend").render(k, comm_id, params, function(res)
+		local file = k:img_save(res.data, res.mime_type, comm_id .. "_0001")
+		if file then
+			-- We keep track of the current sizes of each plot to avoid unnecessary
+			-- re-rendering in cases when the window hasn't changed size.
+			k.metadata.plot_sizes = k.metadata.plot_sizes or {}
+			k.metadata.plot_sizes[comm_id] = params.size
+			k.metadata.resize_curr_plot = debounce(200, resize_curr_plot)
+			k:img_open(vim.fs.basename(file))
+		end
+		return true
+	end)
+end
 
 M.setup = function()
 	vim.api.nvim_create_autocmd("WinResized", {
@@ -111,12 +125,11 @@ M.setup = function()
 		callback = function()
 			for _, win in ipairs(vim.v.event.windows or {}) do
 				local buf = vim.api.nvim_win_get_buf(win)
-				-- Snacks sets `vim.bo.filetype = image`
 				if vim.b[buf].jet and (vim.bo[buf].filetype == "jetimg" or vim.bo[buf].filetype == "image") then
-					local session = vim.b[buf].jet.session_id
-					local k = session and require("jet.core.manager").kernels[session]
-					if k then
-						update_plot_size(k)
+					local session_id = vim.b[buf].jet.session_id
+					local k = session_id and require("jet.core.manager").kernels[session_id]
+					if k and k.metadata.resize_curr_plot then
+						k.metadata.resize_curr_plot(k)
 					end
 				end
 			end
