@@ -112,7 +112,11 @@ M.comm_open_handler = function(k, comm_id, data)
 			-- re-rendering in cases when the window hasn't changed size.
 			k.metadata.plot_sizes = k.metadata.plot_sizes or {}
 			k.metadata.plot_sizes[comm_id] = params.size
-			k.metadata.resize_curr_plot = debounce(200, resize_curr_plot)
+			local resizer = debounce(200, function()
+				resize_curr_plot(k)
+			end)
+			k.metadata.resize_curr_plot = resizer
+			k.hooks.on_image_display_pre.resize_curr_plot = resizer
 			k:img_open(vim.fs.basename(file))
 		end
 		return true
@@ -129,7 +133,7 @@ M.setup = function()
 					local session_id = vim.b[buf].jet.session_id
 					local k = session_id and require("jet.core.manager").kernels[session_id]
 					if k and k.metadata.resize_curr_plot then
-						k.metadata.resize_curr_plot(k)
+						k.metadata.resize_curr_plot()
 					end
 				end
 			end
