@@ -5,7 +5,7 @@ M.get_ark_kernel = function(callback)
 	---@param status jet.kernel.status | jet.kernel.status[]
 	local get_ark_kernels = function(status, cb)
 		local spec_path = require("jet.ark.config").data.kernelspec_path
-		require("jet.core.api").list_kernels({ spec_path = spec_path, status = status }, {}, cb)
+		require("jet.core.manager").list({ spec_path = spec_path, status = status }, cb)
 	end
 
 	get_ark_kernels({ "connected", "connecting" }, function(connected)

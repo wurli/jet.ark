@@ -2,7 +2,7 @@ local config = require("jet.ark.config")
 
 local M = {}
 
----@return jet.kernel.spec
+---@return jupyter.KernelSpec
 M.generate = function()
 	local argv = { config.options.ark_binary_path }
 
