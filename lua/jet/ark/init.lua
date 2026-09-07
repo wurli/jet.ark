@@ -5,6 +5,11 @@ local M = {}
 
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
+	assert(
+		require("jet").did_setup(),
+		'jet.nvim has not done setup; run `require("jet").setup({})` before loading jet.ark'
+	)
+
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
 	require("jet.ark.plot").setup()
@@ -15,11 +20,6 @@ M.setup = function(opts)
 
 	-- Register ark.jet's special kernelspec as the one to use
 	local jet_cfg = require("jet.core.config").options
-	---@diagnostic disable-next-line: unnecessary-if
-	if jet_cfg.default_kernels.r then
-		vim.notify("[jet.ark] Overriding default R kernel path")
-	end
-	jet_cfg.default_kernels.r = config.data.kernelspec_path
 
 	-- Register a method for getting the current 'expression' for R files
 	require("jet").filetype.r = require("jet.ark.get_code")
@@ -29,6 +29,7 @@ M.setup = function(opts)
 	table.insert(jet_cfg.hooks.on_kernel_init, function(k)
 		if k.spec_path == config.data.kernelspec_path then
 			k.filetype = "r"
+			k.priority = 200
 			k.known_comms["positron.plot"] = require("jet.ark.plot").comm_open_handler
 		end
 	end)
