@@ -4,9 +4,7 @@ jet.ark is an Neovim plugin which extends
 [jet.nvim](https://github.com/wurli/jet.nvim) to provide language features for
 R using the [Ark](https://github.com/posit-dev/ark) jupyter kernel.
 
-> [!Note]
-> This plugin is in alpha. It works pretty well but is in active development
-> and **will** undergo breaking changes. Use at your own risk!
+
 
 ## Features
 
@@ -15,7 +13,10 @@ R using the [Ark](https://github.com/posit-dev/ark) jupyter kernel.
   single keystroke
 * [x] A LSP server which is aware of your R session (e.g. providing completions
   for dataframe column names and other session-specific stuff)
-* [ ] Debug adaptor is TODO
+* [x] Resizable plots
+* [ ] Debug adaptor
+* [ ] Variables pane
+* [ ] Connections pane
 
 ## Installation
 
@@ -33,6 +34,11 @@ require("jet.ark").setup({
 	ark_binary_path = "path-to-ark-binary",
 })
 ```
+
+## Keymaps
+
+See [jet.nvim](https://github.com/wurli/jet.nvim#keymaps) for advice on
+creating keymaps, e.g. to send code to the R console.
 
 ## Usage
 
