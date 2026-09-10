@@ -17,7 +17,7 @@ M.rpc_request = function(kernel, comm, method, params, reply_method, callback)
 	})
 
 	if callback then
-		kernel.on_message_received[msg_id] = function(_, m)
+		kernel.hooks.on_message_received[msg_id] = function(_, m)
 			if
 				m.parent_header
 				and m.parent_header.msg_id == msg_id
@@ -26,7 +26,7 @@ M.rpc_request = function(kernel, comm, method, params, reply_method, callback)
 				and m.content.data.method == reply_method
 			then
 				if callback(m.content.data.result) then
-					kernel.on_message_received[msg_id] = nil
+					kernel.hooks.on_message_received[msg_id] = nil
 				end
 			end
 		end
