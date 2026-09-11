@@ -15,7 +15,8 @@
     "ignoreDir": [
       "target",
       "deps",
-      "debug"
+      "debug",
+	  "resources"
     ],
     "ignoreGlobs": [
       "*.log"

@@ -28,17 +28,6 @@ M.load_data = function()
 	M.data.kernelspec_path = require("jet.core.kernelspec").make_path("ark")
 end
 
---TODO: default startup file makes some assumptions about the capabilities of
---the current terminal. We might be able to determine this dynamically and
---generate the file accordingly.
----@return string
-local default_startup_file_path = function()
-	local debug = assert(debug.getinfo(1), "Failed to get debug info")
-	local path = vim.fn.simplify(debug.source:match("@?(.*/)") .. "../../../scripts/startup.R")
-	assert(vim.uv.fs_stat(path), "Ark startup file not found at: " .. path)
-	return path
-end
-
 local is_executable = function(path)
 	return vim.fn.executable(vim.fs.normalize(path)) == 1
 end
@@ -51,7 +40,8 @@ local validate = function(opts)
 	assert(is_executable(opts.ark_binary_path), "Ark binary not found at: " .. opts.ark_binary_path)
 
 	--- Default startup file
-	opts.ark_argv.startup_file = opts.ark_argv.startup_file or default_startup_file_path()
+	opts.ark_argv.startup_file = opts.ark_argv.startup_file
+		or require("jet.ark.utils").project_file("scripts/startup.R")
 
 	--- Default log file (ark stderr goes here instead of leaking into repl)
 	opts.ark_argv.log = opts.ark_argv.log or vim.fn.stdpath("cache") .. "/jet.ark/ark.log"

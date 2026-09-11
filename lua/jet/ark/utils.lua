@@ -21,4 +21,11 @@ M.get_ark_kernel = function(callback)
 	end)
 end
 
+M.project_file = function(path)
+	local debug = assert(debug.getinfo(1), "Failed to get debug info")
+	local out = vim.fn.simplify(debug.source:match("@?(.*/)") .. "../../../" .. path)
+	assert(vim.uv.fs_stat(out), "Project file not found at: " .. out)
+	return out
+end
+
 return M

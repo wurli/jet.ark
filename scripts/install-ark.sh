@@ -1,5 +1,3 @@
-set -euo pipefail
-
 # ─── config ────────────────────────────────────────────────────────────
 ARK_VERSION="${ARK_VERSION:-0.1.252}"
 R_VERSION="${R_VERSION:-4.5.0}"
