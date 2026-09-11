@@ -14,6 +14,7 @@ R using the [Ark](https://github.com/posit-dev/ark) jupyter kernel.
 * [x] A LSP server which is aware of your R session (e.g. providing completions
   for dataframe column names and other session-specific stuff)
 * [x] Resizable plots
+* [x] `:ArkHelp {topic}` command, powered by Ark's `help` comm
 * [ ] Debug adaptor
 * [ ] Variables pane
 * [ ] Connections pane
