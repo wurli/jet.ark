@@ -31,7 +31,6 @@ jobs:
 
   run_tests:
     needs:
-      - docs
       - code_style
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.neovim == 'nightly' }}
