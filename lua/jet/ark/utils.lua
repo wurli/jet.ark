@@ -21,6 +21,18 @@ M.get_ark_kernel = function(callback)
 	end)
 end
 
+---@param comm_name string
+---@param callback fun(k: jet.Kernel, id: string)
+M.get_ark_comm = function(comm_name, callback)
+	M.get_ark_kernel(function(k)
+		for id, comm in pairs(k.open_comms) do
+			if comm.name == comm_name then
+				callback(k, id)
+			end
+		end
+	end)
+end
+
 M.project_file = function(path)
 	local debug = assert(debug.getinfo(1), "Failed to get debug info")
 	local out = vim.fn.simplify(debug.source:match("@?(.*/)") .. "../../../" .. path)

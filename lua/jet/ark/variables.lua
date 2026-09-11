@@ -11,6 +11,8 @@ M.setup = function()
 				vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = buf, silent = true })
 			end
 
+			-- require("jet.ark.comm.variables-backend").list()
+
 			if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
 				vim.api.nvim_open_win(buf, true, {
 					split = "right",

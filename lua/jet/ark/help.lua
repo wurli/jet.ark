@@ -16,18 +16,14 @@ M.setup = function()
 		end
 		-- This is a 'fire and forget' request. We monitor the comm using
 		-- M.listener() and display the result if/when we get a reply
-		require("jet.ark.utils").get_ark_kernel(function(k)
-			for id, comm in pairs(k.open_comms) do
-				if comm.name == "positron.help" then
-					require("jet.ark.comm.help-backend").show_help_topic(k, id, { topic = topic }, function(res)
-						if res then
-							last_topic = topic
-						else
-							vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
-						end
-					end)
+		require("jet.ark.utils").get_ark_comm("positron.help", function(k, id)
+			require("jet.ark.comm.help-backend").show_help_topic(k, id, { topic = topic }, function(res)
+				if res then
+					last_topic = topic
+				else
+					vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
 				end
-			end
+			end)
 		end)
 	end, { nargs = "?" })
 end
