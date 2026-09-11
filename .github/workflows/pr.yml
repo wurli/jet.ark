@@ -66,6 +66,9 @@ jobs:
       - name: Install testing deps (mini.nvim)
         run: make deps/mini.nvim
 
+      - name: Install jet.nvim
+        run: make deps/jet.nvim
+
       - name: Install emmylua_check
         run: |
           curl -LO https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_CHECK_VERSION}/${{ matrix.emmylua_stem }}.tar.gz

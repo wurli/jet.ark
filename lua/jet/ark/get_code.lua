@@ -56,13 +56,13 @@ M.get_expr = function(pos)
 
 	local start_row, start_col, end_row, end_col = node:range(false)
 
-	return {
+	return require("jet.core.send.range").new({
 		buf = vim.api.nvim_get_current_buf(),
 		start_row = start_row,
 		start_col = start_col,
 		end_row = end_row,
 		end_col = end_col,
-	}
+	})
 end
 
 return M
