@@ -1,7 +1,7 @@
 -- Prepend BASE_URL to relative URLs in links and images.
 -- Usage: pandoc --lua-filter prefix-relative-urls.lua -M base-url=http://127.0.0.1:50925
 
-local function resolve_dots(url)
+local function simplify_path(url)
 	local scheme, path, query = url:match("^(https?://)([^%?]*)(%??.*)$")
 	if not scheme then
 		return url
@@ -24,7 +24,7 @@ local function prefix(url, base_url)
 	if url:match("^https?://") or url:match("^#") or url:match("^mailto:") then
 		return url
 	end
-	return resolve_dots(base_url .. url)
+	return simplify_path(base_url .. url)
 end
 
 function Pandoc(doc)

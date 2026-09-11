@@ -50,4 +50,4 @@ deps/jet.nvim:
 	git clone --filter=blob:none https://github.com/wurli/jet.nvim $@
 
 test-kernels: scripts/install-ark.sh
-	sh scripts/install-dev-kernels.sh
+	sh scripts/install-ark.sh
