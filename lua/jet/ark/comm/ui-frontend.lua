@@ -338,7 +338,14 @@ end
 ---@param params jet.ark.comm.ui_frontend.modify_editor_selections.Params
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.modify_editor_selections.Reply): boolean
 M.modify_editor_selections = function(kernel, comm_id, params, callback)
-	return util.rpc_request(kernel, comm_id, "modify_editor_selections", params, "ModifyEditorSelectionsReply", callback)
+	return util.rpc_request(
+		kernel,
+		comm_id,
+		"modify_editor_selections",
+		params,
+		"ModifyEditorSelectionsReply",
+		callback
+	)
 end
 
 ---Context metadata for the last editor
@@ -348,7 +355,14 @@ end
 ---@param comm_id string
 ---@param callback? fun(res: jet.ark.comm.ui_frontend.last_active_editor_context.Reply): boolean
 M.last_active_editor_context = function(kernel, comm_id, callback)
-	return util.rpc_request(kernel, comm_id, "last_active_editor_context", nil, "LastActiveEditorContextReply", callback)
+	return util.rpc_request(
+		kernel,
+		comm_id,
+		"last_active_editor_context",
+		nil,
+		"LastActiveEditorContextReply",
+		callback
+	)
 end
 
 ---@class jet.ark.comm.ui_frontend.show_url.Params

@@ -6,6 +6,16 @@ test: deps/mini.nvim deps/jet.nvim test-kernels
 test_file: deps/mini.nvim test-kernels
 	nvim --headless --noplugin -u ./scripts/minimal_init.lua -c "lua MiniTest.run_file('$(FILE)')"
 
+.PHONY: comms
+comms: lua/jet/ark/comm
+
+lua/jet/ark/comm: scripts/refresh_positron_comms.py
+	python scripts/refresh_positron_comms.py
+	stylua lua/jet/ark/comm
+
+resources/positron-comms: scripts/refresh_positron_comms.py
+	python scripts/refresh_positron_comms.py
+
 .PHONY: docs
 docs: deps/pandoc-include-sh deps/pandoc-better-vim emmylua_doc_cli/doc.json
 	@mkdir -p doc
