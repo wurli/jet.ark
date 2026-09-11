@@ -81,8 +81,9 @@ local function show_r_help(url, buf)
 				})
 
 				vim.api.nvim_create_autocmd("BufNew", {
+					---@param e vim.api.keyset.create_autocmd.callback_args
 					callback = function(e)
-						if e.win == help_win and vim.startswith(e.file, "http") then
+						if vim.api.nvim_win_is_valid(help_win) and vim.startswith(e.file, "http") then
 							show_r_help(e.file, e.buf)
 							vim.bo[e.buf].buftype = "nofile"
 						end
