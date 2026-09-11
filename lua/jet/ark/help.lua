@@ -43,6 +43,10 @@ M.listener = function(msg)
 		"-t",
 		"markdown-simple_tables-multiline_tables-pipe_tables-native_divs-fenced_divs-raw_html-smart+grid_tables",
 		"--columns=100",
+		"--lua-filter",
+		require("jet.ark.utils").project_file("resources/prefix-relative-urls.lua"),
+		"-M",
+		"base-url=" .. url,
 	}, {}, function(res)
 		if not res.signal == 0 then
 			vim.notify(
