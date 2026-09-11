@@ -1,0 +1,112 @@
+name: "Pull Request"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+env:
+  STYLUA_VERSION: "2.5.2"
+  EMMYLUA_CHECK_VERSION: "0.25.0"
+  EMMYLUA_DOC_CLI_VERSION: "0.24.0"
+
+jobs:
+  code_style:
+    # Doesn't depend on OS or any assets (e.g. nvim runtime) so best to run
+    # this outside the matrix.
+    name: stylua
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Stylua
+        run: |
+          curl -LO https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip
+          sudo unzip stylua-linux-x86_64.zip -d /opt
+          echo "/opt" >> $GITHUB_PATH
+
+      - name: Check styling
+        run: stylua . --check --color Always
+
+  run_tests:
+    needs:
+      - docs
+      - code_style
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.neovim == 'nightly' }}
+    name: Nvim ${{ matrix.neovim }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        neovim: [stable, nightly]
+        r: ["4.5.0"]
+        include:
+          - os: ubuntu-latest
+            nvim_stem: nvim-linux-x86_64
+            emmylua_stem: emmylua_check-linux-x64
+            tools_dir: /opt
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Neovim
+        run: |
+          curl -LO https://github.com/neovim/neovim/releases/download/${{ matrix.neovim }}/${{ matrix.nvim_stem }}.tar.gz
+          sudo rm -rf ${{ matrix.tools_dir }}/${{ matrix.nvim_stem }}
+          sudo tar -C ${{ matrix.tools_dir }} -xzf ${{ matrix.nvim_stem }}.tar.gz
+          echo "${{ matrix.tools_dir }}/${{ matrix.nvim_stem }}/bin" >> $GITHUB_PATH
+
+      - name: Cache testing deps (mini.nvim)
+        uses: actions/cache@v4
+        with:
+          path: deps
+          key: ${{ runner.os }}-minideps-${{ hashFiles('Makefile') }}
+
+      - name: Install testing deps (mini.nvim)
+        run: make deps/mini.nvim
+
+      - name: Install emmylua_check
+        run: |
+          curl -LO https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_CHECK_VERSION}/${{ matrix.emmylua_stem }}.tar.gz
+          sudo rm -rf ${{ matrix.tools_dir }}/${{ matrix.emmylua_stem }}
+          sudo tar -C ${{ matrix.tools_dir }} -xzf ${{ matrix.emmylua_stem }}.tar.gz
+          echo "${{ matrix.tools_dir }}" >> $GITHUB_PATH
+
+      - name: Run emmylua_check
+        run: |
+          export VIMRUNTIME=$(nvim --clean --headless +'lua io.write(vim.env.VIMRUNTIME)' +qa)
+          emmylua_check . --warnings-as-errors --output-format github
+
+      # Ark needs a real R at runtime. Install it out-of-band; the script only
+      # downloads the ark binary and writes the kernelspec.
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r }}
+
+      # Cache the ark binary (~40MB download) and the ipykernel venv (~a few
+      # seconds to reinstall). Keyed on the install script so any version bump
+      # invalidates the cache automatically.
+      - name: Cache dev kernels
+        uses: actions/cache@v4
+        with:
+          path: test-kernels
+          key: ${{ runner.os }}-dev-kernels-${{ hashFiles('scripts/install-ark.sh') }}
+
+      - name: Install Ark
+        run: ./scripts/install-ark.sh
+
+      # Ark dlopens R's `libR.so` and its bundled packages (utils.so, etc.),
+      # which are themselves linked against libR.so. The `R` shell wrapper
+      # sources `$R_HOME/etc/ldpaths` to set LD_LIBRARY_PATH, but launching ark
+      # directly bypasses that — on Linux the loader can't find libR.so and ark
+      # panics on startup. Export it once, from R itself, so every subsequent
+      # step sees it.
+      - name: Export LD_LIBRARY_PATH for ark (Linux)
+        if: runner.os == 'Linux'
+        run: echo "LD_LIBRARY_PATH=$(R RHOME)/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+
+      - name: Run Tests
+        run: make test

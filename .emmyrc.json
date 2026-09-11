@@ -22,7 +22,8 @@
     ],
     "library": [
       "$VIMRUNTIME",
-      "$HOME/Repos/jet.nvim/lua"
+      "$HOME/Repos/jet.nvim/lua",
+      "./deps"
     ]
   }
 }
