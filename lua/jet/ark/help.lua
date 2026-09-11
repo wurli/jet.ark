@@ -6,11 +6,15 @@ M.setup = function()
 			return
 		end
 		require("jet.ark.utils").get_ark_kernel(function(k)
-			require("jet.ark.comm.help-backend").show_help_topic(k, { topic = args.fargs[1] }, function(res)
-				if not res then
-					vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
+			for id, comm in pairs(k.open_comms) do
+				if comm.name == "positron.help" then
+					require("jet.ark.comm.help-backend").show_help_topic(k, id, { topic = args.fargs[1] }, function(res)
+						if not res then
+							vim.notify("[jet.ark] Help topic not found: " .. args.fargs[1], vim.log.levels.WARN)
+						end
+					end)
 				end
-			end)
+			end
 		end)
 	end, { nargs = 1 })
 end
@@ -25,6 +29,10 @@ M.listener = function(msg)
 	local url = data and data.method == "show_help" and data.params and data.params.content or nil
 	if not (url and type(url) == "string") then
 		return
+	end
+
+	if vim.fn.executable("pandoc") ~= 1 then
+		error("`pandoc` executable not found. Please make sure pandoc is installed and avaiable on the PATH.")
 	end
 
 	vim.system({
