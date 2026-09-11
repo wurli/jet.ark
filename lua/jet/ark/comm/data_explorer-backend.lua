@@ -569,7 +569,14 @@ end
 ---@param params jet.ark.comm.data_explorer_backend.set_dataset_import_options.Params
 ---@param callback? fun(res: jet.ark.comm.data_explorer_backend.set_dataset_import_options.Reply): boolean
 M.set_dataset_import_options = function(kernel, comm_id, params, callback)
-	return util.rpc_request(kernel, comm_id, "set_dataset_import_options", params, "SetDatasetImportOptionsReply", callback)
+	return util.rpc_request(
+		kernel,
+		comm_id,
+		"set_dataset_import_options",
+		params,
+		"SetDatasetImportOptionsReply",
+		callback
+	)
 end
 
 ---Open a full data explorer for the same data

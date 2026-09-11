@@ -31,7 +31,6 @@ jobs:
 
   run_tests:
     needs:
-      - docs
       - code_style
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.neovim == 'nightly' }}
@@ -67,6 +66,9 @@ jobs:
       - name: Install testing deps (mini.nvim)
         run: make deps/mini.nvim
 
+      - name: Install jet.nvim
+        run: make deps/jet.nvim
+
       - name: Install emmylua_check
         run: |
           curl -LO https://github.com/EmmyLuaLs/emmylua-analyzer-rust/releases/download/${EMMYLUA_CHECK_VERSION}/${{ matrix.emmylua_stem }}.tar.gz
@@ -85,6 +87,11 @@ jobs:
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.r }}
+
+      - name: Set up pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+        with:
+          pandoc-version: "3.10"
 
       # Cache the ark binary (~40MB download) and the ipykernel venv (~a few
       # seconds to reinstall). Keyed on the install script so any version bump
