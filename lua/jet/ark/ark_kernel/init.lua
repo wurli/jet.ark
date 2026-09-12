@@ -30,9 +30,7 @@ ArkKernel.from_kernel = function(kernel)
 		-- LSP up again (this happens on BufEnter, but BufEnter isn't triggered
 		-- if we're in an R file when the kernel is closed)
 		if vim.bo.filetype == "r" then
-			require("jet.ark.utils").get_ark_kernel(function(new_kernel)
-				new_kernel:start_ark_lsp()
-			end)
+			require("jet.ark.utils").get_ark_kernel(function(new_kernel) new_kernel:start_ark_lsp() end)
 		end
 	end
 	out.hooks.on_lua_client_start.start_comms = function()
@@ -43,9 +41,7 @@ ArkKernel.from_kernel = function(kernel)
 	return out
 end
 
-function ArkKernel:start_ark_lsp()
-	lsp.start_ark_lsp(self)
-end
+function ArkKernel:start_ark_lsp() lsp.start_ark_lsp(self) end
 
 function ArkKernel:stop_ark_lsp()
 	if self.ark_lsp_name then
@@ -54,18 +50,12 @@ function ArkKernel:stop_ark_lsp()
 	end
 end
 
-function ArkKernel:resize_curr_plot()
-	plot.resize_curr_plot_debounced(self)
-end
+function ArkKernel:resize_curr_plot() plot.resize_curr_plot_debounced(self) end
 
 ---@param topic string?
-function ArkKernel:request_help(topic)
-	help.request_help(self, topic)
-end
+function ArkKernel:request_help(topic) help.request_help(self, topic) end
 
 ---@param width integer
-function ArkKernel:set_console_width(width)
-	ui.set_console_width(self, width)
-end
+function ArkKernel:set_console_width(width) ui.set_console_width(self, width) end
 
 return ArkKernel

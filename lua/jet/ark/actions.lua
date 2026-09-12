@@ -31,13 +31,9 @@ local insert_with_pad = function(text)
 end
 
 ---@param symbol string? Defaults to `|>`
-M.pipe = function(symbol)
-	insert_with_pad(symbol or "|>")
-end
+M.pipe = function(symbol) insert_with_pad(symbol or "|>") end
 
 ---@param symbol string? Defaults to `<-`
-M.assign = function(symbol)
-	insert_with_pad(symbol or "<-")
-end
+M.assign = function(symbol) insert_with_pad(symbol or "<-") end
 
 return M

@@ -78,9 +78,7 @@ M.handle_plot_comm_open = function(k, comm_id, data)
 			-- We keep track of the current sizes of each plot to avoid unnecessary
 			-- re-rendering in cases when the window hasn't changed size.
 			k.plot_sizes[comm_id] = params.size
-			k.hooks.on_image_display_pre.resize_curr_plot = function()
-				k:resize_curr_plot()
-			end
+			k.hooks.on_image_display_pre.resize_curr_plot = function() k:resize_curr_plot() end
 			k:img_open(vim.fs.basename(file))
 		end
 		return true

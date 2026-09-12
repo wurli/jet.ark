@@ -16,9 +16,7 @@ local T = new_set({
 				end)
 			]])
 
-			vim.wait(10000, function()
-				return child.lua_get("_G.kernel and _G.kernel.session_id") ~= vim.NIL
-			end)
+			vim.wait(10000, function() return child.lua_get("_G.kernel and _G.kernel.session_id") ~= vim.NIL end)
 		end,
 		post_once = child.stop,
 	},

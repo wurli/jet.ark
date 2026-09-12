@@ -18,17 +18,17 @@ end
 local render_variables = function(vars)
 	vim.print(vars)
 	---@param var jet.ark.comm.variables_backend.variable
-	return vim.tbl_map(function(var)
-		return string.format("%s (%s)", var.display_name, var.display_type)
-	end, vars)
+	return vim.tbl_map(function(var) return string.format("%s (%s)", var.display_name, var.display_type) end, vars)
 end
 
 M.setup = function()
 	vim.api.nvim_create_user_command("ArkVariables", function(_args)
 		require("jet.ark.utils").get_ark_comm("positron.variables", function(k, id)
-			require("jet.ark.comm.variables-backend").list(k, id, function(res)
-				vim.api.nvim_buf_set_lines(buf, 0, -1, false, render_variables(res.variables))
-			end)
+			require("jet.ark.comm.variables-backend").list(
+				k,
+				id,
+				function(res) vim.api.nvim_buf_set_lines(buf, 0, -1, false, render_variables(res.variables)) end
+			)
 
 			if not vim.api.nvim_win_is_valid(win) or vim.api.nvim_win_get_buf(win) ~= buf then
 				vim.api.nvim_open_win(variables_buf(), true, {

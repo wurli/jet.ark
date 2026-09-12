@@ -21,9 +21,7 @@ local M = {}
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_frontend.update.Params
-M.update = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "update", params)
-end
+M.update = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "update", params) end
 
 ---@class jet.ark.comm.variables_frontend.refresh.Params
 ---@field variables jet.ark.comm.variables_backend.variable[] An array listing all the variables in the current session.
@@ -36,8 +34,6 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.variables_frontend.refresh.Params
-M.refresh = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "refresh", params)
-end
+M.refresh = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "refresh", params) end
 
 return M

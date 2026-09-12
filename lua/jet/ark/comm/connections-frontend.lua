@@ -12,15 +12,11 @@ local M = {}
 ---Request to focus the Connections pane
 ---@param kernel jet.Kernel
 ---@param comm_id string
-M.focus = function(kernel, comm_id)
-	return util.rpc_request(kernel, comm_id, "focus", nil)
-end
+M.focus = function(kernel, comm_id) return util.rpc_request(kernel, comm_id, "focus", nil) end
 
 ---Request the UI to refresh the connection information
 ---@param kernel jet.Kernel
 ---@param comm_id string
-M.update = function(kernel, comm_id)
-	return util.rpc_request(kernel, comm_id, "update", nil)
-end
+M.update = function(kernel, comm_id) return util.rpc_request(kernel, comm_id, "update", nil) end
 
 return M

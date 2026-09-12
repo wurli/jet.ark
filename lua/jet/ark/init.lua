@@ -50,9 +50,7 @@ local setup_help = function()
 			end
 		end
 
-		require("jet.ark.utils").get_ark_kernel(function(k)
-			k:request_help(topic)
-		end)
+		require("jet.ark.utils").get_ark_kernel(function(k) k:request_help(topic) end)
 	end, { nargs = "?" })
 end
 
@@ -67,9 +65,7 @@ local setup_lsp = function()
 			if vim.lsp.get_clients({ name = "ark" })[1] then
 				return
 			end
-			utils.get_ark_kernel(function(new_kernel)
-				new_kernel:start_ark_lsp()
-			end)
+			utils.get_ark_kernel(function(new_kernel) new_kernel:start_ark_lsp() end)
 		end,
 	})
 end
