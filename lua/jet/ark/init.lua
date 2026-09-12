@@ -23,7 +23,7 @@ end
 
 local setup_console_auto_resize = function()
 	vim.api.nvim_create_autocmd("WinResized", {
-		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),
+		group = vim.api.nvim_create_augroup("jet.ark.console-resized", { clear = true }),
 		callback = function()
 			local resized_wins = vim.v.event.windows --[[@as integer[] ]]
 			for _, win in ipairs(resized_wins) do
@@ -70,6 +70,16 @@ local setup_lsp = function()
 	})
 end
 
+local setup_vars = function()
+	vim.api.nvim_create_user_command("ArkVariables", function(_args)
+		require("jet.ark.utils").get_ark_kernel(function(k)
+			if k.vars then
+				k.vars:open()
+			end
+		end)
+	end, { nargs = 0 })
+end
+
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
 	assert(
@@ -84,6 +94,7 @@ M.setup = function(opts)
 	setup_console_auto_resize()
 	setup_help()
 	setup_lsp()
+	setup_vars()
 
 	----------------------------
 	--    Ark Kernel Setup    --
@@ -101,21 +112,6 @@ M.setup = function(opts)
 			require("jet.ark.ark_kernel").from_kernel(k)
 		end
 	end)
-
-	----------------------------
-	--    Ark UI features     --
-	----------------------------
-
-	---@param k jet.Kernel
-	jet.hooks.on_lua_client_start.start_comms = function(k)
-		-- We don't need to open a listener on the UI comm since right now only
-		-- `working_directory` and `prompt_state` come through
-		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
-			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
-		end
-	end
-
-	require("jet.ark.variables").setup()
 end
 
 return M
