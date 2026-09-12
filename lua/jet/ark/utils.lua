@@ -28,8 +28,10 @@ M.get_ark_comm = function(comm_name, callback)
 		for id, comm in pairs(k.open_comms) do
 			if comm.name == comm_name then
 				callback(k, id)
+				return
 			end
 		end
+		error(string.format("Comm '%s' is not open. Existing comms: %s", comm_name, vim.inspect(k.open_comms)))
 	end)
 end
 
