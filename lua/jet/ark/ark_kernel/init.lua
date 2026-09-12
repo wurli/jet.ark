@@ -1,5 +1,6 @@
 local help = require("jet.ark.ark_kernel.help")
 local plot = require("jet.ark.ark_kernel.plot")
+local ui = require("jet.ark.ark_kernel.ui")
 
 local Kernel = require("jet.core.kernel")
 
@@ -24,7 +25,8 @@ ArkKernel.from_kernel = function(kernel)
 		out:stop_ark_lsp()
 	end
 	out.hooks.on_lua_client_start.start_comms = function()
-		help.start_help_comm(out)
+		help.start_comm(out)
+		ui.start_comm(out)
 	end
 	return out
 end
@@ -43,6 +45,11 @@ end
 ---@param topic string?
 function ArkKernel:request_help(topic)
 	help.request_help(self, topic)
+end
+
+---@param width integer
+function ArkKernel:set_console_width(width)
+	ui.set_console_width(self, width)
 end
 
 return ArkKernel

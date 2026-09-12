@@ -90,7 +90,7 @@ local function show_r_help(url, buf)
 end
 
 ---@param k ark.Kernel
-M.start_help_comm = function(k)
+M.start_comm = function(k)
 	k:comm_open("positron.help", {}, {
 		listener = function(msg)
 			local data = msg.content.data
