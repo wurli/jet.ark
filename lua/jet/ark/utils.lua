@@ -42,4 +42,36 @@ M.project_file = function(path)
 	return out
 end
 
+---Debounce a function: delays execution until `ms` milliseconds have passed
+---since the last call. Rapid calls reset the timer.
+---@generic F
+---@param f F
+---@param delay integer
+---@return F debounced function
+---@return fun() cancel
+M.debounce = function(delay, f)
+	local timer = nil
+	local cancel = function()
+		if timer then
+			timer:stop()
+			timer:close()
+			timer = nil
+		end
+	end
+	local debounced = function(...)
+		local args = { ... }
+		cancel()
+		timer = assert(vim.uv.new_timer(), "Failed to create timer")
+		timer:start(
+			delay,
+			0,
+			vim.schedule_wrap(function()
+				cancel()
+				f(unpack(args))
+			end)
+		)
+	end
+	return debounced, cancel
+end
+
 return M

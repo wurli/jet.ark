@@ -3,6 +3,24 @@ local lsp = require("jet.ark.lsp")
 
 local M = {}
 
+local set_up_plot_auto_resize = function()
+	vim.api.nvim_create_autocmd("WinResized", {
+		group = vim.api.nvim_create_augroup("jet.ark.plot-resized", { clear = true }),
+		callback = function()
+			for _, win in ipairs(vim.v.event.windows or {}) do
+				local buf = vim.api.nvim_win_get_buf(win)
+				if vim.b[buf].jet and vim.bo[buf].filetype == "jetimg" then
+					local session_id = vim.b[buf].jet.session_id
+					local k = session_id and require("jet.api").get_kernel_by_id(session_id) --[[@as ark.Kernel? ]]
+					if k and k.subclass == "ark" then
+						k:resize_curr_plot()
+					end
+				end
+			end
+		end,
+	})
+end
+
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
 	assert(
@@ -12,7 +30,7 @@ M.setup = function(opts)
 
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
-	require("jet.ark.plot").setup()
+	set_up_plot_auto_resize()
 
 	----------------------------
 	--    Ark Kernel Setup    --
