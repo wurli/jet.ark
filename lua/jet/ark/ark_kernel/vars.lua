@@ -5,10 +5,13 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@field children? table<string, ark.var>
 ---@field indent integer
 
+---@class ark.flat_var : ark.var
+---@field path string[]
+
 ---@class ark.Kernel.Vars
 ---@field buf integer
 ---@field vars table<string, ark.var>
----@field vars_flat ark.var[]
+---@field vars_flat ark.flat_var[]
 ---@field version integer
 ---@field length integer
 ---@field kernel ark.Kernel
@@ -28,11 +31,33 @@ Vars.new = function(kernel)
 		comm_id = nil,
 	}, Vars)
 
-	vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = out.buf, silent = true })
-
 	out.comm_id = out:start_comm()
+	out:set_keymaps()
 
 	return out
+end
+
+function Vars:set_keymaps()
+	vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = self.buf, silent = true })
+	vim.keymap.set("n", "<enter>", function()
+		local line = vim.fn.line(".")
+		local var_flat = self.vars_flat[line]
+		if not var_flat then
+			return
+		end
+		local var = self:get_var(var_flat.path)
+
+		if var.expanded then
+			var.expanded = false
+			self:redraw()
+		elseif var.children then
+			var.expanded = true
+			self:redraw()
+		elseif var.has_children then
+			var.expanded = true
+			self:inspect(var_flat.path)
+		end
+	end, { buffer = self.buf })
 end
 
 ---Take vars from the backend's array representation to jet.ark's nested dict
@@ -89,17 +114,34 @@ function Vars:list(cb)
 	end)
 end
 
+---@param path string[]
+function Vars:get_var(path)
+	local var ---@type ark.var
+	local children = self.vars ---@type table<string, ark.var> | nil
+	for _, key in ipairs(path) do
+		assert(children, "Failed to expand variable")
+		var = children[key]
+		assert(var, "Failed to expand variable")
+		children = var.children
+	end
+	return var
+end
+
+---@param path string[]
 function Vars:inspect(path)
+	assert(#path > 0)
 	backend.inspect(self.kernel, self.comm_id, { path = path }, function(res)
-		-- res.length
-		-- res.children
+		local var = self:get_var(path)
+		var.children = process_vars(res.children)
+		var.expanded = true
+		self:redraw()
 	end)
 end
 
 function Vars:open()
 	self:list(function()
-		vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, self:render())
 		if not self:win() then
+			self:redraw()
 			local win = vim.api.nvim_open_win(self.buf, true, {
 				split = "right",
 				win = -1,
@@ -110,6 +152,8 @@ function Vars:open()
 	end)
 end
 
+function Vars:redraw() vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, self:render()) end
+
 local icons = {
 	caret_right = "",
 	caret_down = "",
@@ -117,12 +161,12 @@ local icons = {
 
 ---@return string[]
 function Vars:render()
-	---@class ark.flat_var : ark.var
-
-	---@param vars table<string, ark.var>
+	---@param vars table<string, ark.flat_var>
+	---@param path string[]
 	---@param level integer
-	local function unpack_vars(vars, level)
+	local function unpack_vars(vars, path, level)
 		for _, var in pairs(vars) do
+			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
 			table.insert(self.vars_flat, {
 				display_name = var.display_name,
 				display_value = var.display_value,
@@ -137,16 +181,17 @@ function Vars:render()
 				updated_time = var.updated_time,
 				expanded = var.expanded,
 				indent = level * 2,
+				path = var_path,
 			})
 
-			if var.children then
-				unpack_vars(var.children, level + 1)
+			if var.expanded and var.children then
+				unpack_vars(var.children, var_path, level + 1)
 			end
 		end
 	end
 
 	self.vars_flat = {}
-	unpack_vars(self.vars, 0)
+	unpack_vars(self.vars, {}, 0)
 
 	---@param f fun(v: ark.flat_var): integer
 	local var_max = function(f) return math.max(0, unpack(vim.tbl_map(f, self.vars_flat))) end
@@ -182,6 +227,18 @@ function Vars:render()
 		local name_col = indent .. caret .. " " .. name .. name_pad .. indent_pad
 		local val_col = val .. val_pad
 		local type_col = type_pad .. type
+
+		-- vim.print({
+		-- 	["1_indent"] = indent,
+		-- 	["2_indent_pad"] = indent_pad,
+		-- 	["3_caret"] = caret,
+		-- 	["4_name"] = name,
+		-- 	["5_name_pad"] = name_pad,
+		-- 	["6_val"] = val,
+		-- 	["7_val_pad"] = val_pad,
+		-- 	["8_type"] = type,
+		-- 	["9_type_pad"] = type_pad,
+		-- })
 
 		table.insert(out, name_col .. " " .. val_col .. " " .. type_col)
 	end
