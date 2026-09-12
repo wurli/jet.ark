@@ -28,9 +28,10 @@ M.setup = function(opts)
 	---@param k jet.Kernel
 	table.insert(jet_cfg.hooks.on_kernel_init, function(k)
 		if k.spec_path == config.data.kernelspec_path then
-			k.filetype = "r"
-			k.priority = 200
-			k.known_comms["positron.plot"] = require("jet.ark.plot").comm_open_handler
+			require("jet.ark.ark_kernel").from_kernel(k)
+			-- k.filetype = "r"
+			-- k.priority = 200
+			-- k.known_comms["positron.plot"] = require("jet.ark.plot").comm_open_handler
 		end
 	end)
 
@@ -65,6 +66,7 @@ M.setup = function(opts)
 	end
 
 	jet_cfg.hooks.on_kernel_close.stop_ark_lsp = function(k)
+		k.metadata = k.metadata or {}
 		if k.metadata.ark_lsp then
 			vim.lsp.enable(k.metadata.ark_lsp, false)
 			vim.lsp.config[k.metadata.ark_lsp] = {}
