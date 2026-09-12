@@ -1,9 +1,4 @@
-local Kernel = require("jet.core.kernel")
-
----@class ark.Kernel : jet.Kernel
----@field plot_sizes table<string, jet.ark.comm.plot_backend.plot_size>
-local ArkKernel = setmetatable({}, { __index = Kernel })
-ArkKernel.__index = ArkKernel ---@private
+local M = {}
 
 ---@param win integer
 ---@param format? jet.ark.comm.plot_backend.plot_render_format
@@ -20,7 +15,7 @@ win_to_render_settings = function(win, format)
 end
 
 ---@param k ark.Kernel
-local resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, function(k)
+M.resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, function(k)
 	if not k.img or not k.img.img_file then
 		return
 	end
@@ -70,14 +65,10 @@ local resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, functi
 	end)
 end)
 
-function ArkKernel:resize_curr_plot()
-	resize_curr_plot_debounced(self)
-end
-
 ---@param k ark.Kernel
 ---@param comm_id string
 ---@param data jet.ark.comm.plot_frontend.show.Params
-local handle_plot_comm_open = function(k, comm_id, data)
+M.handle_plot_comm_open = function(k, comm_id, data)
 	local pre_render_settings = data.pre_render and data.pre_render.settings and data.pre_render.settings or {}
 	local params = win_to_render_settings(k:img_open(), pre_render_settings.format)
 	---@diagnostic disable-next-line: param-type-mismatch
@@ -96,17 +87,4 @@ local handle_plot_comm_open = function(k, comm_id, data)
 	end)
 end
 
----Modifies `kernel` in place
----@param kernel jet.Kernel
-ArkKernel.from_kernel = function(kernel)
-	local out = setmetatable(kernel, ArkKernel)
-	out.subclass = "ark"
-	out.metadata = {}
-	out.filetype = "r"
-	out.priority = 200
-	out.known_comms["positron.plot"] = handle_plot_comm_open
-	out.plot_sizes = {}
-	return out
-end
-
-return ArkKernel
+return M

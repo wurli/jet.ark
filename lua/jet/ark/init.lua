@@ -21,6 +21,24 @@ local set_up_plot_auto_resize = function()
 	})
 end
 
+local set_up_help = function()
+	vim.api.nvim_create_user_command("ArkHelp", function(args)
+		local topic = args.fargs[1]
+
+		if not topic then
+			local help_win = require("jet.ark.ark_kernel.help").help_win
+			if vim.api.nvim_win_is_valid(help_win) then
+				vim.api.nvim_set_current_win(help_win)
+				return
+			end
+		end
+
+		require("jet.ark.utils").get_ark_kernel(function(k)
+			k:request_help(topic)
+		end)
+	end, { nargs = "?" })
+end
+
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
 	assert(
@@ -31,6 +49,7 @@ M.setup = function(opts)
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
 	set_up_plot_auto_resize()
+	set_up_help()
 
 	----------------------------
 	--    Ark Kernel Setup    --
@@ -47,9 +66,6 @@ M.setup = function(opts)
 	table.insert(jet_cfg.hooks.on_kernel_init, function(k)
 		if k.spec_path == config.data.kernelspec_path then
 			require("jet.ark.ark_kernel").from_kernel(k)
-			-- k.filetype = "r"
-			-- k.priority = 200
-			-- k.known_comms["positron.plot"] = require("jet.ark.plot").comm_open_handler
 		end
 	end)
 
@@ -77,22 +93,12 @@ M.setup = function(opts)
 					},
 				},
 			})
-			k:comm_open("positron.help", {}, { listener = require("jet.ark.help").listener })
 			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
 			lsp.start_ark_lsp(k)
 		end
 	end
 
-	jet_cfg.hooks.on_kernel_close.stop_ark_lsp = function(k)
-		k.metadata = k.metadata or {}
-		if k.metadata.ark_lsp then
-			vim.lsp.enable(k.metadata.ark_lsp, false)
-			vim.lsp.config[k.metadata.ark_lsp] = {}
-		end
-	end
-
 	require("jet.ark.variables").setup()
-	require("jet.ark.help").setup()
 
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),

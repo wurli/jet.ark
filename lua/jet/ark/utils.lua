@@ -1,6 +1,6 @@
 local M = {}
 
----@param callback fun(k: jet.Kernel)
+---@param callback fun(k: ark.Kernel)
 M.get_ark_kernel = function(callback)
 	---@param status jet.kernel.status | jet.kernel.status[]
 	local get_ark_kernels = function(status, cb)
@@ -18,20 +18,6 @@ M.get_ark_kernel = function(callback)
 			end
 			error("No Ark kernel found. Please start an Ark kernel first")
 		end)
-	end)
-end
-
----@param comm_name string
----@param callback fun(k: jet.Kernel, id: string)
-M.get_ark_comm = function(comm_name, callback)
-	M.get_ark_kernel(function(k)
-		for id, comm in pairs(k.open_comms) do
-			if comm.name == comm_name then
-				callback(k, id)
-				return
-			end
-		end
-		error(string.format("Comm '%s' is not open. Existing comms: %s", comm_name, vim.inspect(k.open_comms)))
 	end)
 end
 
