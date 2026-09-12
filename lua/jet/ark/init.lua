@@ -1,9 +1,9 @@
 local config = require("jet.ark.config")
-local lsp = require("jet.ark.lsp")
+local utils = require("jet.ark.utils")
 
 local M = {}
 
-local set_up_plot_auto_resize = function()
+local setup_plot_auto_resize = function()
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("jet.ark.plot-resized", { clear = true }),
 		callback = function()
@@ -21,7 +21,7 @@ local set_up_plot_auto_resize = function()
 	})
 end
 
-local set_up_console_auto_resize = function()
+local setup_console_auto_resize = function()
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),
 		callback = function()
@@ -38,7 +38,7 @@ local set_up_console_auto_resize = function()
 	})
 end
 
-local set_up_help = function()
+local setup_help = function()
 	vim.api.nvim_create_user_command("ArkHelp", function(args)
 		local topic = args.fargs[1]
 
@@ -56,6 +56,24 @@ local set_up_help = function()
 	end, { nargs = "?" })
 end
 
+local setup_lsp = function()
+	-- Start the LSP when an R file is entered. NB for most LSPs it's better to
+	-- use `FileType` since you don't expect the LSP to stop. But Ark closes if
+	-- we quit the REPL, so we will want to check if it needs restarting.
+	vim.api.nvim_create_autocmd("BufEnter", {
+		pattern = "*.r",
+		group = vim.api.nvim_create_augroup("jet.ark.lsp", { clear = true }),
+		callback = function()
+			if vim.lsp.get_clients({ name = "ark" })[1] then
+				return
+			end
+			utils.get_ark_kernel(function(new_kernel)
+				new_kernel:start_ark_lsp()
+			end)
+		end,
+	})
+end
+
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
 	assert(
@@ -66,9 +84,10 @@ M.setup = function(opts)
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
 
-	set_up_plot_auto_resize()
-	set_up_console_auto_resize()
-	set_up_help()
+	setup_plot_auto_resize()
+	setup_console_auto_resize()
+	setup_help()
+	setup_lsp()
 
 	----------------------------
 	--    Ark Kernel Setup    --
@@ -76,7 +95,7 @@ M.setup = function(opts)
 	local jet = require("jet")
 
 	-- Register a method for getting the current 'expression' for R files
-	require("jet").filetype.r = require("jet.ark.get_code")
+	jet.filetype.r = require("jet.ark.get_code")
 
 	-- Subclass all kernels with jet.ark's special kernelspec as ark.Kernel
 	---@param k jet.Kernel
@@ -97,44 +116,10 @@ M.setup = function(opts)
 		-- `working_directory` and `prompt_state` come through
 		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
 			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
-			lsp.start_ark_lsp(k)
 		end
 	end
 
 	require("jet.ark.variables").setup()
-
-	----------------------------
-	--       Ark LSP          --
-	----------------------------
-
-	-- Start the LSP when an R file is entered. NB for most LSPs it's better to
-	-- use `FileType` since you don't expect the LSP to stop. But Ark closes if
-	-- we quit the REPL, so we will want to check if it needs restarting.
-	vim.api.nvim_create_autocmd("BufEnter", {
-		pattern = "*.r",
-		group = vim.api.nvim_create_augroup("jet.ark.lsp", { clear = true }),
-		callback = function()
-			if vim.lsp.get_clients({ name = "ark" })[1] then
-				return
-			end
-			lsp.start_ark_lsp()
-		end,
-	})
-
-	-- For convenience, if we close Ark _and_ we're in an R file, start the LSP
-	-- up again (this happens on BufEnter, but BufEnter isn't triggered if
-	-- we're in an R file when the kernel is closed)
-	---@param k jet.Kernel
-	table.insert(jet.hooks.on_kernel_close, function(k)
-		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
-			-- Since the LSP has been stopped we wipe the config, since this
-			-- records the IP and port the prev LSP was running on.
-			vim.lsp.config("ark", {})
-			if vim.bo.filetype == "r" then
-				lsp.start_ark_lsp()
-			end
-		end
-	end)
 end
 
 return M
