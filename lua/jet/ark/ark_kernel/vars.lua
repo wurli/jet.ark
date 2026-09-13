@@ -39,6 +39,8 @@ Vars.new = function(kernel)
 	}, Vars)
 
 	vim.bo[out.buf].filetype = "arkvariables"
+	vim.bo[out.buf].modifiable = false
+	vim.bo[out.buf].buftype = "nofile"
 	vim.api.nvim_buf_set_name(out.buf, kernel:friendly_name() .. " - Variables")
 
 	out.comm_id = out:start_comm()
@@ -287,7 +289,9 @@ end
 
 function Vars:redraw()
 	local lines, extmarks = self:render()
+	vim.bo[self.buf].modifiable = true
 	vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, lines)
+	vim.bo[self.buf].modifiable = false
 	vim.api.nvim_buf_clear_namespace(self.buf, self.ns, 0, -1)
 	for line, marks in ipairs(extmarks) do
 		for _, mark in ipairs(marks) do
