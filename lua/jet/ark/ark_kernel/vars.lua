@@ -15,7 +15,7 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@field ns integer
 ---@field buf integer
 ---@field vars table<string, ark.var>
----@field vars_flat ark.flat_var[]
+---@field vars_flat (ark.flat_var | string)[]
 ---@field version integer
 ---@field length integer
 ---@field kernel ark.Kernel
@@ -67,7 +67,7 @@ function Vars:set_keymaps()
 
 	vim.keymap.set("n", "<enter>", function()
 		local var_flat = self.vars_flat[vim.fn.line(".")]
-		if not var_flat then
+		if not var_flat or not var_flat.path then
 			return
 		end
 		local var = self:get_var(var_flat.path)
@@ -86,7 +86,7 @@ function Vars:set_keymaps()
 
 	vim.keymap.set("n", "<leader>y", function()
 		local var_flat = self.vars_flat[vim.fn.line(".")]
-		if var_flat then
+		if var_flat and var_flat.path then
 			self:clipboard_format(var_flat.path, "text/plain", function(text) vim.fn.setreg(vim.v.register, text) end)
 		end
 	end, { buffer = self.buf })
@@ -226,6 +226,25 @@ local icons = {
 ---@return string[]
 ---@return ark.extmark_args[][]
 function Vars:render()
+	---@param kind jet.ark.comm.variables_backend.variable["kind"]
+	local category = function(kind)
+		return kind == "table" and "DATA"
+			or kind == "function" and "FUNCTIONS"
+			or kind == "class" and "CLASSES"
+			or "VALUES"
+	end
+
+	-- Bucket variables by category first to ensure proper sorting later on
+	local categories = {
+		DATA = {}, ---@type table<string, ark.var>
+		FUNCTIONS = {}, ---@type table<string, ark.var>
+		CLASSES = {}, ---@type table<string, ark.var>
+		VALUES = {}, ---@type table<string, ark.var>
+	}
+	for key, var in pairs(self.vars) do
+		categories[category(var.kind)][key] = var
+	end
+
 	---@param vars table<string, ark.flat_var>
 	---@param path string[]
 	---@param level integer
@@ -258,11 +277,21 @@ function Vars:render()
 		end
 	end
 
+	-- Unpacking each category in order ensures proper sorting
 	self.vars_flat = {}
-	unpack_vars(self.vars, {}, 0)
+	for _, c in ipairs({ "DATA", "FUNCTIONS", "CLASSES", "VALUES" }) do
+		if vim.tbl_count(categories[c]) > 0 then
+			table.insert(self.vars_flat, c)
+			unpack_vars(categories[c], {}, 0)
+			table.insert(self.vars_flat, "")
+		end
+	end
 
 	---@param f fun(v: ark.flat_var): integer
-	local var_max = function(f) return math.max(0, unpack(vim.tbl_map(f, self.vars_flat))) end
+	local var_max = function(f)
+		local widths = vim.tbl_map(function(var) return type(var) == "table" and f(var) or 0 end, self.vars_flat)
+		return math.max(0, unpack(widths))
+	end
 
 	local name_max_width = var_max(function(v) return v.display_name_w + v.indent end)
 	local type_max_width = var_max(function(v) return v.display_type_w end)
@@ -274,58 +303,63 @@ function Vars:render()
 	local win_width = win and vim.api.nvim_win_get_width(win) or math.floor(vim.o.columns / 2)
 
 	for _, v in ipairs(self.vars_flat) do
-		-- Indent
-		local indent = string.rep(" ", v.indent)
+		if type(v) == "string" then
+			table.insert(lines, v)
+			table.insert(marks, { { 0, { hl_group = "ArkVarsCategory", end_col = #v } } })
+		else
+			-- Indent
+			local indent = string.rep(" ", v.indent)
 
-		-- Expanded icon
-		local caret = (not v.has_children) and " " or v.expanded and icons.caret_down or icons.caret_right
+			-- Expanded icon
+			local caret = (not v.has_children) and " " or v.expanded and icons.caret_down or icons.caret_right
 
-		-- Display name
-		local name = v.display_name
-		local name_pad = string.rep(" ", name_max_width - v.display_name_w)
+			-- Display name
+			local name = v.display_name
+			local name_pad = string.rep(" ", name_max_width - v.display_name_w)
 
-		-- Display value
-		local val = v.display_value
+			-- Display value
+			local val = v.display_value
 
-		-- Display type
-		local type = v.display_type
-		local type_pad = string.rep(" ", type_max_width - v.display_type_w)
+			-- Display type
+			local type = v.display_type
+			local type_pad = string.rep(" ", type_max_width - v.display_type_w)
 
-		-- Final cols for name + type
-		local name_col = indent .. caret .. " " .. name .. name_pad
-		local type_col = type_pad .. type
+			-- Final cols for name + type
+			local name_col = indent .. caret .. " " .. name .. name_pad
+			local type_col = type_pad .. type
 
-		-- Value takes remaining space in the window
-		local name_and_type_width = vim.fn.strwidth(name_col .. type_col) + 4
-		local available_val_width = math.max(win_width - name_and_type_width, 10)
+			-- Value takes remaining space in the window
+			local name_and_type_width = vim.fn.strwidth(name_col .. type_col) + 4
+			local available_val_width = math.max(win_width - name_and_type_width, 10)
 
-		local val_n_pad = available_val_width - v.display_value_w
-		local val_pad = val_n_pad <= 0 and "" or string.rep(" ", val_n_pad)
-		local val_trunc = val_n_pad >= 0 and val
-			or vim.fn.strcharpart(val, 0, v.display_value_w + val_n_pad - 1) .. icons.ellipsis
-		local val_col = val_trunc .. val_pad
+			local val_n_pad = available_val_width - v.display_value_w
+			local val_pad = val_n_pad <= 0 and "" or string.rep(" ", val_n_pad)
+			local val_trunc = val_n_pad >= 0 and val
+				or vim.fn.strcharpart(val, 0, v.display_value_w + val_n_pad - 1) .. icons.ellipsis
+			local val_col = val_trunc .. val_pad
 
-		-- Combine all
-		table.insert(lines, name_col .. "  " .. val_col .. "  " .. type_col)
+			-- Combine all
+			table.insert(lines, name_col .. "  " .. val_col .. "  " .. type_col)
 
-		-- Indent highlight
-		local caret_hl = { v.indent, { hl_group = "ArkVarsIndent", end_col = v.indent + 1 } } ---@type ark.extmark_args
+			-- Indent highlight
+			local caret_hl = { v.indent, { hl_group = "ArkVarsIndent", end_col = v.indent + 1 } } ---@type ark.extmark_args
 
-		-- Var name highlight
-		local name_start = v.indent + #caret + 1
-		local name_end = name_start + #name
-		local name_hl = { name_start, { hl_group = "ArkVarsName", end_col = name_end } } ---@type ark.extmark_args
+			-- Var name highlight
+			local name_start = v.indent + #caret + 1
+			local name_end = name_start + #name
+			local name_hl = { name_start, { hl_group = "ArkVarsName", end_col = name_end } } ---@type ark.extmark_args
 
-		-- Var value highlight
-		local val_start = #name_col + 2
-		local val_end = val_start + #val_trunc
-		local val_hl = { val_start, { hl_group = "ArkVarsValue", end_col = val_end } } ---@type ark.extmark_args
+			-- Var value highlight
+			local val_start = #name_col + 2
+			local val_end = val_start + #val_trunc
+			local val_hl = { val_start, { hl_group = "ArkVarsValue", end_col = val_end } } ---@type ark.extmark_args
 
-		-- Var type highlight
-		local type_start = #(name_col .. "  " .. val_col .. "  " .. type_pad)
-		local type_hl = { type_start, { hl_group = "ArkVarsType", end_col = type_start + #type } } ---@type ark.extmark_args
+			-- Var type highlight
+			local type_start = #(name_col .. "  " .. val_col .. "  " .. type_pad)
+			local type_hl = { type_start, { hl_group = "ArkVarsType", end_col = type_start + #type } } ---@type ark.extmark_args
 
-		table.insert(marks, { caret_hl, name_hl, val_hl, type_hl })
+			table.insert(marks, { caret_hl, name_hl, val_hl, type_hl })
+		end
 	end
 
 	return lines, marks

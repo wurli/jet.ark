@@ -2,6 +2,7 @@ local M = {}
 
 ---@type table<string, vim.api.keyset.highlight>
 M.colours = {
+	ArkVarsCategory = { bold = true },
 	ArkVarsIndent = { link = "ComplHint" },
 	ArkVarsName = { link = "Special" },
 	ArkVarsValue = { link = "Normal" },
