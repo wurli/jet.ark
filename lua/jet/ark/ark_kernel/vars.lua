@@ -21,6 +21,8 @@ Vars.__index = Vars ---@private
 
 ---@param kernel ark.Kernel
 Vars.new = function(kernel)
+	assert(kernel.session_id)
+
 	local out = setmetatable({
 		buf = vim.api.nvim_create_buf(false, true),
 		kernel = kernel,
@@ -33,6 +35,21 @@ Vars.new = function(kernel)
 
 	out.comm_id = out:start_comm()
 	out:set_keymaps()
+
+	vim.api.nvim_create_autocmd("WinResized", {
+		group = vim.api.nvim_create_augroup("ark." .. kernel.session_id, { clear = true }),
+		callback = function()
+			local win = out:win()
+			if win then
+				local resized = vim.v.event.windows --[[@as integer[] ]]
+				for _, resized_win in ipairs(resized) do
+					if win == resized_win then
+						out:redraw()
+					end
+				end
+			end
+		end,
+	})
 
 	return out
 end
@@ -157,6 +174,7 @@ function Vars:redraw() vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, self:r
 local icons = {
 	caret_right = "",
 	caret_down = "",
+	ellipsis = "…",
 }
 
 ---@return string[]
@@ -196,11 +214,13 @@ function Vars:render()
 	---@param f fun(v: ark.flat_var): integer
 	local var_max = function(f) return math.max(0, unpack(vim.tbl_map(f, self.vars_flat))) end
 
-	local name_max_width = var_max(function(v) return #v.display_name + v.indent end)
-	local value_max_width = var_max(function(v) return #v.display_value end)
-	local type_max_width = var_max(function(v) return #v.display_type end)
+	local name_max_width = var_max(function(v) return vim.fn.strwidth(v.display_name) + v.indent end)
+	local type_max_width = var_max(function(v) return vim.fn.strwidth(v.display_type) end)
 
 	local out = {} ---@type string[]
+
+	local win = self:win()
+	local win_width = win and vim.api.nvim_win_get_width(win) or math.floor(vim.o.columns / 2)
 
 	for _, v in ipairs(self.vars_flat) do
 		-- Indent
@@ -211,34 +231,27 @@ function Vars:render()
 
 		-- Display name
 		local name = v.display_name
-		local name_pad = string.rep(" ", name_max_width - #name)
+		local name_pad = string.rep(" ", name_max_width - vim.fn.strwidth(name))
 
 		-- Display value
 		local val = v.display_value
-		local val_pad = string.rep(" ", value_max_width - #val)
 
 		-- Display type
 		local type = v.display_type
-		local type_pad = string.rep(" ", type_max_width - #type)
+		local type_pad = string.rep(" ", type_max_width - vim.fn.strwidth(type))
 
 		-- Combine all
 		local name_col = indent .. caret .. " " .. name .. name_pad
-		local val_col = val .. val_pad
 		local type_col = type_pad .. type
 
-		-- vim.print({
-		-- 	["1_indent"] = indent,
-		-- 	["2_indent_pad"] = indent_pad,
-		-- 	["3_caret"] = caret,
-		-- 	["4_name"] = name,
-		-- 	["5_name_pad"] = name_pad,
-		-- 	["6_val"] = val,
-		-- 	["7_val_pad"] = val_pad,
-		-- 	["8_type"] = type,
-		-- 	["9_type_pad"] = type_pad,
-		-- })
+		local name_and_type_width = vim.fn.strwidth(name_col .. type_col) + 4
+		local available_val_width = math.max(win_width - name_and_type_width, 10)
 
-		table.insert(out, name_col .. " " .. val_col .. " " .. type_col)
+		local val_pad = available_val_width - vim.fn.strwidth(val)
+		local val_col = val_pad >= 0 and val .. string.rep(" ", val_pad)
+			or string.sub(val, 0, val_pad - 2) .. icons.ellipsis
+
+		table.insert(out, name_col .. "  " .. val_col .. "  " .. type_col)
 	end
 
 	return out
