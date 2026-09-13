@@ -90,6 +90,26 @@ function Vars:set_keymaps()
 			self:clipboard_format(var_flat.path, "text/plain", function(text) vim.fn.setreg(vim.v.register, text) end)
 		end
 	end, { buffer = self.buf })
+
+	vim.keymap.set({ "n", "x" }, "]]", function()
+		for i = vim.fn.line(".") + 1, #self.vars_flat do
+			local var = self.vars_flat[i]
+			if type(var) == "table" and var.indent == 0 then
+				vim.api.nvim_win_set_cursor(0, { i, 0 })
+				return
+			end
+		end
+	end, { buffer = self.buf })
+
+	vim.keymap.set({ "n", "x" }, "[[", function()
+		for i = vim.fn.line(".") - 1, 1, -1 do
+			local var = self.vars_flat[i]
+			if type(var) == "table" and var.indent == 0 then
+				vim.api.nvim_win_set_cursor(0, { i, 0 })
+				return
+			end
+		end
+	end, { buffer = self.buf })
 end
 
 ---Take vars from the backend's array representation to jet.ark's nested dict
