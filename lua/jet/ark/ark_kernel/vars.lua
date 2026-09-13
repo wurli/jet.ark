@@ -3,10 +3,13 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@class ark.var : jet.ark.comm.variables_backend.variable
 ---@field expanded boolean
 ---@field children? table<string, ark.var>
----@field indent integer
 
 ---@class ark.flat_var : ark.var
 ---@field path string[]
+---@field indent integer
+---@field display_name_w integer
+---@field display_value_w integer
+---@field display_type_w integer
 
 ---@class ark.Kernel.Vars
 ---@field buf integer
@@ -187,8 +190,11 @@ function Vars:render()
 			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
 			table.insert(self.vars_flat, {
 				display_name = var.display_name,
+				display_name_w = vim.fn.strwidth(var.display_name),
 				display_value = var.display_value,
+				display_value_w = vim.fn.strwidth(var.display_value),
 				display_type = var.display_type,
+				display_type_w = vim.fn.strwidth(var.display_type),
 				type_info = var.type_info,
 				size = var.size,
 				kind = var.kind,
@@ -214,8 +220,8 @@ function Vars:render()
 	---@param f fun(v: ark.flat_var): integer
 	local var_max = function(f) return math.max(0, unpack(vim.tbl_map(f, self.vars_flat))) end
 
-	local name_max_width = var_max(function(v) return vim.fn.strwidth(v.display_name) + v.indent end)
-	local type_max_width = var_max(function(v) return vim.fn.strwidth(v.display_type) end)
+	local name_max_width = var_max(function(v) return v.display_name_w + v.indent end)
+	local type_max_width = var_max(function(v) return v.display_type_w end)
 
 	local out = {} ---@type string[]
 
@@ -231,26 +237,28 @@ function Vars:render()
 
 		-- Display name
 		local name = v.display_name
-		local name_pad = string.rep(" ", name_max_width - vim.fn.strwidth(name))
+		local name_pad = string.rep(" ", name_max_width - v.display_name_w)
 
 		-- Display value
 		local val = v.display_value
 
 		-- Display type
 		local type = v.display_type
-		local type_pad = string.rep(" ", type_max_width - vim.fn.strwidth(type))
+		local type_pad = string.rep(" ", type_max_width - v.display_type_w)
 
-		-- Combine all
+		-- Final cols for name + type
 		local name_col = indent .. caret .. " " .. name .. name_pad
 		local type_col = type_pad .. type
 
+		-- Value takes remaining space in the window
 		local name_and_type_width = vim.fn.strwidth(name_col .. type_col) + 4
 		local available_val_width = math.max(win_width - name_and_type_width, 10)
 
-		local val_pad = available_val_width - vim.fn.strwidth(val)
+		local val_pad = available_val_width - v.display_value_w
 		local val_col = val_pad >= 0 and val .. string.rep(" ", val_pad)
-			or string.sub(val, 0, val_pad - 2) .. icons.ellipsis
+			or vim.fn.strcharpart(val, 0, v.display_value_w + val_pad - 1) .. icons.ellipsis
 
+		-- Combine all
 		table.insert(out, name_col .. "  " .. val_col .. "  " .. type_col)
 	end
 
