@@ -38,6 +38,9 @@ Vars.new = function(kernel)
 		comm_id = nil,
 	}, Vars)
 
+	vim.bo[out.buf].filetype = "arkvariables"
+	vim.api.nvim_buf_set_name(out.buf, kernel:friendly_name() .. " - Variables")
+
 	out.comm_id = out:start_comm()
 	out:set_keymaps()
 
@@ -61,9 +64,9 @@ end
 
 function Vars:set_keymaps()
 	vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = self.buf, silent = true })
+
 	vim.keymap.set("n", "<enter>", function()
-		local line = vim.fn.line(".")
-		local var_flat = self.vars_flat[line]
+		local var_flat = self.vars_flat[vim.fn.line(".")]
 		if not var_flat then
 			return
 		end
@@ -78,6 +81,13 @@ function Vars:set_keymaps()
 		elseif var.has_children then
 			var.expanded = true
 			self:inspect(var_flat.path)
+		end
+	end, { buffer = self.buf })
+
+	vim.keymap.set("n", "<leader>y", function()
+		local var_flat = self.vars_flat[vim.fn.line(".")]
+		if var_flat then
+			self:clipboard_format(var_flat.path, "text/plain", function(text) vim.fn.setreg(vim.v.register, text) end)
 		end
 	end, { buffer = self.buf })
 end
@@ -164,6 +174,19 @@ function Vars:inspect(path)
 		var.children = process_vars(res.children)
 		var.expanded = true
 		self:redraw()
+	end)
+end
+
+---@param path string[]
+---@param format? "text/plain" | "text/html"
+---@param cb fun(text: string)
+function Vars:clipboard_format(path, format, cb)
+	assert(#path > 0)
+	format = format or "text/plain"
+
+	backend.clipboard_format(self.kernel, self.comm_id, { path = path, format = format }, function(res)
+		cb(res.content)
+		return true
 	end)
 end
 
