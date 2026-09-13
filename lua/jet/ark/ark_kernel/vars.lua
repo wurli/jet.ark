@@ -62,25 +62,55 @@ Vars.new = function(kernel)
 	return out
 end
 
+---@param path string[]
+function Vars:collapse(path)
+	local var = self:get_var(path)
+	if var.expanded then
+		var.expanded = false
+		self:redraw()
+	end
+end
+
+---@param path string[]
+function Vars:expand(path)
+	local var = self:get_var(path)
+	if var.expanded then
+		return
+	end
+	var.expanded = true
+	if var.children then
+		self:redraw()
+	elseif var.has_children then
+		self:inspect(path)
+	end
+end
+
+---@param a any[]
+---@param b any[]
+---@return boolean
+local list_eq = function(a, b)
+	if #a ~= #b then
+		return false
+	end
+	for i = 1, #a do
+		if a[i] ~= b[i] then
+			return false
+		end
+	end
+	return true
+end
+
 function Vars:set_keymaps()
 	vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = self.buf, silent = true })
 
 	vim.keymap.set("n", "<enter>", function()
-		local var_flat = self.vars_flat[vim.fn.line(".")]
-		if not var_flat or not var_flat.path then
-			return
-		end
-		local var = self:get_var(var_flat.path)
-
-		if var.expanded then
-			var.expanded = false
-			self:redraw()
-		elseif var.children then
-			var.expanded = true
-			self:redraw()
-		elseif var.has_children then
-			var.expanded = true
-			self:inspect(var_flat.path)
+		local var = self.vars_flat[vim.fn.line(".")]
+		if var and var.path then
+			if var.expanded then
+				self:collapse(var.path)
+			else
+				self:expand(var.path)
+			end
 		end
 	end, { buffer = self.buf })
 
@@ -107,6 +137,37 @@ function Vars:set_keymaps()
 			if type(var) == "table" and var.indent == 0 then
 				vim.api.nvim_win_set_cursor(0, { i, 0 })
 				return
+			end
+		end
+	end, { buffer = self.buf })
+
+	vim.keymap.set("n", ">", function()
+		local var = self.vars_flat[vim.fn.line(".")]
+		if var and var.path then
+			self:expand(var.path)
+		end
+	end, { buffer = self.buf, remap = true })
+
+	vim.keymap.set("n", "<", function()
+		local var = self.vars_flat[vim.fn.line(".")]
+		if type(var) ~= "table" then
+			return
+		end
+		if #var.path == 1 then
+			self:collapse(var.path)
+		elseif #var.path > 1 then
+			local parent_path = {}
+			for i = 1, #var.path - 1 do
+				table.insert(parent_path, var.path[i])
+			end
+
+			self:collapse(parent_path)
+
+			for line, line_var in ipairs(self.vars_flat) do
+				if type(line_var) == "table" and list_eq(line_var.path, parent_path) then
+					vim.api.nvim_win_set_cursor(0, { line, 0 })
+					return
+				end
 			end
 		end
 	end, { buffer = self.buf })
@@ -279,6 +340,7 @@ function Vars:render()
 		for _, var in ipairs(vars_sorted) do
 			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
 			table.insert(self.vars_flat, {
+				access_key = var.access_key,
 				display_name = var.display_name,
 				display_name_w = vim.fn.strwidth(var.display_name),
 				display_value = var.display_value,
