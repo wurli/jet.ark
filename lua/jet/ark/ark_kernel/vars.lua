@@ -12,6 +12,7 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@field display_type_w integer
 
 ---@class ark.Kernel.Vars
+---@field ns integer
 ---@field buf integer
 ---@field vars table<string, ark.var>
 ---@field vars_flat ark.flat_var[]
@@ -28,6 +29,7 @@ Vars.new = function(kernel)
 
 	local out = setmetatable({
 		buf = vim.api.nvim_create_buf(false, true),
+		ns = vim.api.nvim_create_namespace("ark." .. kernel.session_id),
 		kernel = kernel,
 		vars = {},
 		vars_flat = {},
@@ -172,7 +174,16 @@ function Vars:open()
 	end)
 end
 
-function Vars:redraw() vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, self:render()) end
+function Vars:redraw()
+	local lines, extmarks = self:render()
+	vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, lines)
+	vim.api.nvim_buf_clear_namespace(self.buf, self.ns, 0, -1)
+	for line, marks in ipairs(extmarks) do
+		for _, mark in ipairs(marks) do
+			vim.api.nvim_buf_set_extmark(self.buf, self.ns, line - 1, mark[1], mark[2])
+		end
+	end
+end
 
 local icons = {
 	caret_right = "",
@@ -180,7 +191,10 @@ local icons = {
 	ellipsis = "…",
 }
 
+---@alias ark.extmark_args [ integer, vim.api.keyset.set_extmark ]
+
 ---@return string[]
+---@return ark.extmark_args[][]
 function Vars:render()
 	---@param vars table<string, ark.flat_var>
 	---@param path string[]
@@ -223,7 +237,8 @@ function Vars:render()
 	local name_max_width = var_max(function(v) return v.display_name_w + v.indent end)
 	local type_max_width = var_max(function(v) return v.display_type_w end)
 
-	local out = {} ---@type string[]
+	local lines = {} ---@type string[]
+	local marks = {} ---@type ark.extmark_args[][]
 
 	local win = self:win()
 	local win_width = win and vim.api.nvim_win_get_width(win) or math.floor(vim.o.columns / 2)
@@ -254,15 +269,36 @@ function Vars:render()
 		local name_and_type_width = vim.fn.strwidth(name_col .. type_col) + 4
 		local available_val_width = math.max(win_width - name_and_type_width, 10)
 
-		local val_pad = available_val_width - v.display_value_w
-		local val_col = val_pad >= 0 and val .. string.rep(" ", val_pad)
-			or vim.fn.strcharpart(val, 0, v.display_value_w + val_pad - 1) .. icons.ellipsis
+		local val_n_pad = available_val_width - v.display_value_w
+		local val_pad = val_n_pad <= 0 and "" or string.rep(" ", val_n_pad)
+		local val_trunc = val_n_pad >= 0 and val
+			or vim.fn.strcharpart(val, 0, v.display_value_w + val_n_pad - 1) .. icons.ellipsis
+		local val_col = val_trunc .. val_pad
 
 		-- Combine all
-		table.insert(out, name_col .. "  " .. val_col .. "  " .. type_col)
+		table.insert(lines, name_col .. "  " .. val_col .. "  " .. type_col)
+
+		-- Indent highlight
+		local caret_hl = { v.indent, { hl_group = "ArkVarsIndent", end_col = v.indent + 1 } } ---@type ark.extmark_args
+
+		-- Var name highlight
+		local name_start = v.indent + #caret + 1
+		local name_end = name_start + #name
+		local name_hl = { name_start, { hl_group = "ArkVarsName", end_col = name_end } }
+
+		-- Var value highlight
+		local val_start = #name_col + 2
+		local val_end = val_start + #val_trunc
+		local val_hl = { val_start, { hl_group = "ArkVarsValue", end_col = val_end } }
+
+		-- Var type highlight
+		local type_start = #(name_col .. "  " .. val_col .. "  " .. type_pad)
+		local type_hl = { type_start, { hl_group = "ArkVarsType", end_col = type_start + #type } } ---@type ark.extmark_args
+
+		table.insert(marks, { caret_hl, name_hl, val_hl, type_hl })
 	end
 
-	return out
+	return lines, marks
 end
 
 return Vars

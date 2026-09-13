@@ -89,6 +89,7 @@ M.setup = function(opts)
 
 	config.set(opts or {})
 	require("jet.ark.kernelspec").install()
+	require("jet.ark.highlights").setup()
 
 	setup_plot_auto_resize()
 	setup_console_auto_resize()
