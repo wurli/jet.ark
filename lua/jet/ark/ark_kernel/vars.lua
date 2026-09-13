@@ -196,17 +196,15 @@ function Vars:render()
 	---@param f fun(v: ark.flat_var): integer
 	local var_max = function(f) return math.max(0, unpack(vim.tbl_map(f, self.vars_flat))) end
 
-	local name_max_width = var_max(function(v) return #v.display_name end)
+	local name_max_width = var_max(function(v) return #v.display_name + v.indent end)
 	local value_max_width = var_max(function(v) return #v.display_value end)
 	local type_max_width = var_max(function(v) return #v.display_type end)
-	local indent_max_width = var_max(function(v) return v.indent end)
 
 	local out = {} ---@type string[]
 
 	for _, v in ipairs(self.vars_flat) do
 		-- Indent
 		local indent = string.rep(" ", v.indent)
-		local indent_pad = string.rep(" ", indent_max_width - v.indent)
 
 		-- Expanded icon
 		local caret = (not v.has_children) and " " or v.expanded and icons.caret_down or icons.caret_right
@@ -224,7 +222,7 @@ function Vars:render()
 		local type_pad = string.rep(" ", type_max_width - #type)
 
 		-- Combine all
-		local name_col = indent .. caret .. " " .. name .. name_pad .. indent_pad
+		local name_col = indent .. caret .. " " .. name .. name_pad
 		local val_col = val .. val_pad
 		local type_col = type_pad .. type
 
