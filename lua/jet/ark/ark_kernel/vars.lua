@@ -226,6 +226,7 @@ local icons = {
 ---@return string[]
 ---@return ark.extmark_args[][]
 function Vars:render()
+	---See https://github.com/posit-dev/positron/blob/main/src/vs/workbench/services/positronVariables/common/positronVariablesInstance.ts#L723
 	---@param kind jet.ark.comm.variables_backend.variable["kind"]
 	local category = function(kind)
 		return kind == "table" and "DATA"
@@ -249,7 +250,13 @@ function Vars:render()
 	---@param path string[]
 	---@param level integer
 	local function unpack_vars(vars, path, level)
-		for _, var in pairs(vars) do
+		local vars_sorted = {} ---@type ark.var[]
+		for _, v in pairs(vars) do
+			table.insert(vars_sorted, v)
+		end
+		table.sort(vars_sorted, function(a, b) return a.access_key < b.access_key end)
+
+		for _, var in ipairs(vars_sorted) do
 			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
 			table.insert(self.vars_flat, {
 				display_name = var.display_name,
