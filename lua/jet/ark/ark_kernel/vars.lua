@@ -106,10 +106,17 @@ function Vars:start_comm()
 				self.length = params.length
 				self.version = params.version
 				self.vars = process_vars(params.variables)
-				self:render()
+				self:redraw()
 			elseif method == "update" then
 				local params = data.params --[[@as jet.ark.comm.variables_frontend.update.Params]]
-				-- vim.print({ update = params })
+				self.version = params.version
+				for _, key in ipairs(params.removed) do
+					self.vars[key] = nil
+				end
+				for key, var in pairs(process_vars(params.assigned)) do
+					self.vars[key] = var
+				end
+				self:redraw()
 			end
 		end,
 	})
@@ -284,12 +291,12 @@ function Vars:render()
 		-- Var name highlight
 		local name_start = v.indent + #caret + 1
 		local name_end = name_start + #name
-		local name_hl = { name_start, { hl_group = "ArkVarsName", end_col = name_end } }
+		local name_hl = { name_start, { hl_group = "ArkVarsName", end_col = name_end } } ---@type ark.extmark_args
 
 		-- Var value highlight
 		local val_start = #name_col + 2
 		local val_end = val_start + #val_trunc
-		local val_hl = { val_start, { hl_group = "ArkVarsValue", end_col = val_end } }
+		local val_hl = { val_start, { hl_group = "ArkVarsValue", end_col = val_end } } ---@type ark.extmark_args
 
 		-- Var type highlight
 		local type_start = #(name_col .. "  " .. val_col .. "  " .. type_pad)
