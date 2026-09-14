@@ -155,7 +155,7 @@ function Vars:set_keymaps()
 		if type(var) ~= "table" then
 			return
 		end
-		if #var.path == 1 then
+		if var.expanded then
 			self:collapse(var.path)
 		elseif #var.path > 1 then
 			local parent_path = {}
