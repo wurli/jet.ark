@@ -123,25 +123,19 @@ function Vars:set_keymaps()
 		end
 	end, { buffer = self.buf })
 
-	vim.keymap.set({ "n", "x" }, "]]", function()
-		for i = vim.fn.line(".") + 1, #self.vars_flat do
+	---@param direction integer
+	local next_var = function(direction)
+		for i = vim.fn.line(".") + direction, direction > 0 and #self.vars_flat or 1, direction do
 			local var = self.vars_flat[i]
 			if type(var) == "table" and var.indent == 0 then
 				vim.api.nvim_win_set_cursor(0, { i, 0 })
 				return
 			end
 		end
-	end, { buffer = self.buf })
+	end
 
-	vim.keymap.set({ "n", "x" }, "[[", function()
-		for i = vim.fn.line(".") - 1, 1, -1 do
-			local var = self.vars_flat[i]
-			if type(var) == "table" and var.indent == 0 then
-				vim.api.nvim_win_set_cursor(0, { i, 0 })
-				return
-			end
-		end
-	end, { buffer = self.buf })
+	vim.keymap.set({ "n", "x" }, "]]", function() next_var(1) end, { buffer = self.buf })
+	vim.keymap.set({ "n", "x" }, "[[", function() next_var(-1) end, { buffer = self.buf })
 
 	vim.keymap.set("n", ">", function()
 		local var = self.vars_flat[vim.fn.line(".")]
@@ -173,6 +167,18 @@ function Vars:set_keymaps()
 			end
 		end
 	end, { buffer = self.buf })
+
+	vim.keymap.set("n", "<leader>d", function()
+		local cursor = vim.api.nvim_win_get_cursor(0)
+		local var = self.vars_flat[cursor[1]]
+		if type(var) == "table" and #var.path == 1 then
+			self:delete(var.path)
+		end
+		cursor[1] = cursor[1] - 1
+		vim.api.nvim_win_set_cursor(0, cursor)
+	end, { buffer = self.buf })
+
+	vim.keymap.set("n", "X", function() self:clear(true) end)
 end
 
 ---Take vars from the backend's array representation to jet.ark's nested dict
@@ -233,6 +239,26 @@ function Vars:list(cb)
 		if cb then
 			cb()
 		end
+	end)
+end
+
+---@param hidden boolean
+function Vars:clear(hidden)
+	if hidden == nil then
+		hidden = true
+	end
+	backend.clear(self.kernel, self.comm_id, { include_hidden_objects = hidden })
+end
+
+---@param names string | string[]
+function Vars:delete(names)
+	names = (type(names) == "string" and { names } or names) --[[@as string[] ]]
+	backend.delete(self.kernel, self.comm_id, { names = names }, function(deleted)
+		for _, var in ipairs(deleted) do
+			self.vars[var] = nil
+		end
+		self:redraw()
+		return true
 	end)
 end
 
