@@ -38,7 +38,7 @@ Vars.new = function(kernel)
 		comm_id = nil,
 	}, Vars)
 
-	vim.bo[out.buf].filetype = "arkvariables"
+	vim.bo[out.buf].filetype = "arkvars"
 	vim.bo[out.buf].modifiable = false
 	vim.bo[out.buf].buftype = "nofile"
 	vim.api.nvim_buf_set_name(out.buf, kernel:friendly_name() .. " - Variables")

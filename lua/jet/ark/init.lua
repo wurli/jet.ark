@@ -71,7 +71,7 @@ local setup_lsp = function()
 end
 
 local setup_vars = function()
-	vim.api.nvim_create_user_command("ArkVariables", function(_args)
+	vim.api.nvim_create_user_command("ArkVars", function(_args)
 		require("jet.ark.utils").get_ark_kernel(function(k)
 			if k.vars then
 				k.vars:open()
