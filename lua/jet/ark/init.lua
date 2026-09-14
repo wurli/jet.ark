@@ -1,4 +1,3 @@
-local config = require("jet.ark.config")
 local utils = require("jet.ark.utils")
 
 local M = {}
@@ -50,7 +49,7 @@ local setup_help = function()
 			end
 		end
 
-		require("jet.ark.utils").get_ark_kernel(function(k) k:request_help(topic) end)
+		utils.get_ark_kernel(function(k) k:request_help(topic) end)
 	end, { nargs = "?" })
 end
 
@@ -72,7 +71,7 @@ end
 
 local setup_vars = function()
 	vim.api.nvim_create_user_command("ArkVars", function(_args)
-		require("jet.ark.utils").get_ark_kernel(function(k)
+		utils.get_ark_kernel(function(k)
 			if k.vars then
 				k.vars:open()
 			end
@@ -83,6 +82,7 @@ end
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
 	local jet = require("jet")
+	local config = require("jet.ark.config")
 
 	assert(jet.did_setup(), 'jet.nvim has not done setup; run `require("jet").setup({})` before loading jet.ark')
 
