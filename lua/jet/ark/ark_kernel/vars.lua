@@ -369,26 +369,15 @@ function Vars:render()
 
 		for _, var in ipairs(vars_sorted) do
 			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
-			table.insert(self.vars_flat, {
-				access_key = var.access_key,
-				display_name = var.display_name,
-				display_name_w = vim.fn.strwidth(var.display_name),
-				display_value = var.display_value,
-				display_value_w = vim.fn.strwidth(var.display_value),
-				display_type = var.display_type,
-				display_type_w = vim.fn.strwidth(var.display_type),
-				type_info = var.type_info,
-				size = var.size,
-				kind = var.kind,
-				length = var.length,
-				has_children = var.has_children,
-				has_viewer = var.has_viewer,
-				is_truncated = var.is_truncated,
-				updated_time = var.updated_time,
-				expanded = var.expanded,
-				indent = level * 2,
-				path = var_path,
-			})
+			local var_flat = vim.deepcopy(var) --[[@as ark.flat_var]]
+
+			var_flat.path = var_path
+			var_flat.indent = level * 2
+			var_flat.display_name_w = vim.fn.strwidth(var_flat.display_name)
+			var_flat.display_value_w = vim.fn.strwidth(var_flat.display_value)
+			var_flat.display_type_w = vim.fn.strwidth(var_flat.display_type)
+
+			table.insert(self.vars_flat, var_flat)
 
 			if var.expanded and var.children then
 				unpack_vars(var.children, var_path, level + 1)
