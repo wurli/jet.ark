@@ -9,14 +9,14 @@ local T = new_set({
 		pre_once = function()
 			child.restart({ "-u", "scripts/minimal_init.lua" })
 			child.lua([[
-				require("jet.api").get_kernel({ filtetype = "r" }, function(k)
+				_G.k = require("jet.api").get_kernel({ filtetype = "r" }, function(k)
 					k:start_lua_client(function()
-						_G.kernel = k
+						_G.k = k
 					end)
 				end)
 			]])
 
-			vim.wait(10000, function() return child.lua_get("_G.kernel and _G.kernel.session_id") ~= vim.NIL end)
+			local ok = vim.wait(10000, function() return child.lua_get("_G.k and _G.k.session_id") ~= vim.NIL end)
 		end,
 		post_once = child.stop,
 	},
@@ -73,7 +73,7 @@ T[":ArkHelp works"] = function()
 end
 
 T["`?` in the console brings up the help window"] = function()
-	child.lua([[ _G.kernel:send_repl("?lm") ]])
+	child.lua([[ _G.k:send_repl("?lm") ]])
 
 	local needle = "## Fitting Linear Models"
 	local help_win = -99
