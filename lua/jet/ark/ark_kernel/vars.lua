@@ -1,8 +1,8 @@
 local backend = require("jet.ark.comm.variables-backend")
 
 ---@class ark.var : jet.ark.comm.variables_backend.variable
----@field expanded boolean
----@field children? table<string, ark.var>
+---@field expanded? boolean
+---@field children? ark.var[]
 
 ---@class ark.flat_var : ark.var
 ---@field path string[]
@@ -14,7 +14,7 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@class ark.Kernel.Vars
 ---@field ns integer
 ---@field buf integer
----@field vars table<string, ark.var>
+---@field vars ark.var[]
 ---@field vars_flat (ark.flat_var | string)[]
 ---@field version integer
 ---@field length integer
@@ -181,19 +181,6 @@ function Vars:set_keymaps()
 	vim.keymap.set("n", "X", function() self:clear(true) end)
 end
 
----Take vars from the backend's array representation to jet.ark's nested dict
----structure
----@param vars jet.ark.comm.variables_backend.variable[]
----@return table<string, ark.var>
-local process_vars = function(vars)
-	local out = {}
-	for _, var in ipairs(vars) do
-		out[var.access_key] = var
-		out[var.access_key].expanded = false
-	end
-	return out
-end
-
 function Vars:start_comm()
 	return self.kernel:comm_open("positron.variables", {}, {
 		listener = function(msg)
@@ -204,16 +191,16 @@ function Vars:start_comm()
 				local params = data.params --[[@as jet.ark.comm.variables_frontend.refresh.Params]]
 				self.length = params.length
 				self.version = params.version
-				self.vars = process_vars(params.variables)
+				self.vars = params.variables
 				self:redraw()
 			elseif method == "update" then
 				local params = data.params --[[@as jet.ark.comm.variables_frontend.update.Params]]
 				self.version = params.version
 				for _, key in ipairs(params.removed) do
-					self.vars[key] = nil
+					self:rm(key)
 				end
-				for key, var in pairs(process_vars(params.assigned)) do
-					self.vars[key] = var
+				for _, var in ipairs(params.assigned) do
+					table.insert(self.vars, var)
 				end
 				self:redraw()
 			end
@@ -233,7 +220,7 @@ end
 ---@param cb? fun()
 function Vars:list(cb)
 	backend.list(self.kernel, self.comm_id, function(res)
-		self.vars = process_vars(res.variables)
+		self.vars = res.variables
 		self.length = res.length
 		self.version = res.version
 		if cb then
@@ -250,12 +237,21 @@ function Vars:clear(hidden)
 	backend.clear(self.kernel, self.comm_id, { include_hidden_objects = hidden })
 end
 
+function Vars:rm(key)
+	for i, var in ipairs(self.vars) do
+		if var.access_key == key then
+			table.remove(self.vars, i)
+			return
+		end
+	end
+end
+
 ---@param names string | string[]
 function Vars:delete(names)
 	names = (type(names) == "string" and { names } or names) --[[@as string[] ]]
 	backend.delete(self.kernel, self.comm_id, { names = names }, function(deleted)
 		for _, var in ipairs(deleted) do
-			self.vars[var] = nil
+			self:rm(var)
 		end
 		self:redraw()
 		return true
@@ -265,10 +261,15 @@ end
 ---@param path string[]
 function Vars:get_var(path)
 	local var ---@type ark.var
-	local children = self.vars ---@type table<string, ark.var> | nil
+	local children = self.vars ---@type ark.var[] | nil
 	for _, key in ipairs(path) do
 		assert(children, "Failed to expand variable")
-		var = children[key]
+		for _, vi in ipairs(children) do
+			if vi.access_key == key then
+				var = vi
+				break
+			end
+		end
 		assert(var, "Failed to expand variable")
 		children = var.children
 	end
@@ -280,7 +281,7 @@ function Vars:inspect(path)
 	assert(#path > 0)
 	backend.inspect(self.kernel, self.comm_id, { path = path }, function(res)
 		local var = self:get_var(path)
-		var.children = process_vars(res.children)
+		var.children = res.children
 		var.expanded = true
 		self:redraw()
 	end)
@@ -348,28 +349,29 @@ function Vars:render()
 
 	-- Bucket variables by category first to ensure proper sorting later on
 	local categories = {
-		DATA = {}, ---@type table<string, ark.var>
-		FUNCTIONS = {}, ---@type table<string, ark.var>
-		CLASSES = {}, ---@type table<string, ark.var>
-		VALUES = {}, ---@type table<string, ark.var>
+		DATA = {}, ---@type ark.var[]
+		FUNCTIONS = {}, ---@type ark.var[]
+		CLASSES = {}, ---@type ark.var[]
+		VALUES = {}, ---@type ark.var[]
 	}
-	for key, var in pairs(self.vars) do
-		categories[category(var.kind)][key] = var
+	for _, var in ipairs(self.vars) do
+		table.insert(categories[category(var.kind)], var)
 	end
 
-	---@param vars table<string, ark.flat_var>
+	---@param vars ark.var[]
 	---@param path string[]
 	---@param level integer
 	local function unpack_vars(vars, path, level)
-		local vars_sorted = {} ---@type ark.var[]
-		for _, v in pairs(vars) do
-			table.insert(vars_sorted, v)
-		end
-		table.sort(vars_sorted, function(a, b) return a.access_key < b.access_key end)
-
-		for _, var in ipairs(vars_sorted) do
+		for _, var in ipairs(vars) do
 			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
-			local var_flat = vim.deepcopy(var) --[[@as ark.flat_var]]
+
+			local var_flat = {}
+			for k, v in pairs(var) do
+				if k ~= "children" then
+					---@diagnostic disable-next-line: assign-type-mismatch
+					var_flat[k] = v
+				end
+			end
 
 			var_flat.path = var_path
 			var_flat.indent = level * 2
