@@ -82,12 +82,24 @@ end
 
 ---@param opts? Partial<jet.ark.config>
 M.setup = function(opts)
-	assert(
-		require("jet").did_setup(),
-		'jet.nvim has not done setup; run `require("jet").setup({})` before loading jet.ark'
-	)
+	local jet = require("jet")
+
+	assert(jet.did_setup(), 'jet.nvim has not done setup; run `require("jet").setup({})` before loading jet.ark')
 
 	config.set(opts or {})
+
+	local jet_nvim_version_actual = vim.version.parse(require("jet.core.config").jet_nvim_version)
+	local jet_nvim_version_required = vim.version.parse(config.data.jet_nvim_required)
+
+	assert(
+		jet_nvim_version_actual and jet_nvim_version_required and jet_nvim_version_actual >= jet_nvim_version_required,
+		string.format(
+			"Installed jet.nvim version %s is lower than required %s. Please update jet.nvim to use jet.ark",
+			jet_nvim_version_actual,
+			jet_nvim_version_required
+		)
+	)
+
 	require("jet.ark.kernelspec").install()
 	require("jet.ark.highlights").setup()
 
@@ -100,8 +112,6 @@ M.setup = function(opts)
 	----------------------------
 	--    Ark Kernel Setup    --
 	----------------------------
-	local jet = require("jet")
-
 	-- Register a method for getting the current 'expression' for R files
 	jet.filetype.r = require("jet.ark.get_code")
 

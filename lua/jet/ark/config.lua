@@ -22,6 +22,7 @@ M.options = nil
 ---@class jet.ark.data
 M.data = {
 	kernelspec_path = nil, ---@type string?
+	jet_nvim_required = "0.2.0",
 }
 
 M.load_data = function() M.data.kernelspec_path = require("jet.core.kernelspec").make_path("ark") end
