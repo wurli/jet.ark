@@ -1,3 +1,4 @@
+local buf = require("jet.core.kernel.buf")
 local backend = require("jet.ark.comm.variables-backend")
 
 ---@class ark.var : jet.ark.comm.variables_backend.variable
@@ -11,7 +12,7 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@field display_value_w integer
 ---@field display_type_w integer
 
----@class ark.Kernel.Vars
+---@class ark.Kernel.Vars : jet.Buf
 ---@field ns integer
 ---@field buf integer
 ---@field vars ark.var[]
@@ -20,28 +21,29 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@field length integer
 ---@field kernel ark.Kernel
 ---@field comm_id string
-local Vars = {}
+local Vars = setmetatable({}, { __index = buf })
 Vars.__index = Vars ---@private
 
 ---@param kernel ark.Kernel
-Vars.new = function(kernel)
+Vars.init = function(kernel)
 	assert(kernel.session_id)
 
-	local out = setmetatable({
-		buf = vim.api.nvim_create_buf(false, true),
+	local out = buf.init(Vars, {
 		ns = vim.api.nvim_create_namespace("ark." .. kernel.session_id),
 		kernel = kernel,
-		vars = {},
-		vars_flat = {},
-		version = 0,
-		length = 0,
-		comm_id = nil,
-	}, Vars)
+		name = kernel:friendly_name() .. " - Variables",
+		layout_pos = 2,
+	})
+
+	out.vars = {}
+	out.vars_flat = {}
+	out.length = 0
+	out.comm_id = nil
+	out.version = 0
 
 	vim.bo[out.buf].filetype = "arkvars"
 	vim.bo[out.buf].modifiable = false
 	vim.bo[out.buf].buftype = "nofile"
-	vim.api.nvim_buf_set_name(out.buf, kernel:friendly_name() .. " - Variables")
 
 	out.comm_id = out:start_comm()
 	out:set_keymaps()
@@ -49,7 +51,7 @@ Vars.new = function(kernel)
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("ark." .. kernel.session_id, { clear = true }),
 		callback = function()
-			local win = out:win()
+			local win = out:win():winnr(out)
 			if win then
 				local resized = vim.v.event.windows --[[@as integer[] ]]
 				for _, resized_win in ipairs(resized) do
@@ -208,15 +210,6 @@ function Vars:start_comm()
 	})
 end
 
----@return integer?
-function Vars:win()
-	for _, win in ipairs(vim.api.nvim_list_wins()) do
-		if vim.api.nvim_win_get_buf(win) == self.buf then
-			return win
-		end
-	end
-end
-
 ---@param cb? fun()
 function Vars:list(cb)
 	backend.list(self.kernel, self.comm_id, function(res)
@@ -301,17 +294,9 @@ function Vars:clipboard_format(path, format, cb)
 end
 
 function Vars:open()
-	self:list(function()
-		if not self:win() then
-			self:redraw()
-			local win = vim.api.nvim_open_win(self.buf, true, {
-				split = "right",
-				win = -1,
-				style = "minimal",
-			})
-			vim.wo[win].wrap = false
-		end
-	end)
+	local win = buf.open(self, nil)
+	self:list(function() self:redraw() end)
+	return win
 end
 
 function Vars:redraw()
@@ -409,7 +394,8 @@ function Vars:render()
 	local lines = {} ---@type string[]
 	local marks = {} ---@type ark.extmark_args[][]
 
-	local win = self:win()
+	local w = self:win()
+	local win = w and w:winnr(self)
 	local win_width = win and vim.api.nvim_win_get_width(win) or math.floor(vim.o.columns / 2)
 
 	for _, v in ipairs(self.vars_flat) do

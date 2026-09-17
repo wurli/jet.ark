@@ -39,7 +39,7 @@ ArkKernel.from_kernel = function(kernel)
 		help.start_comm(out)
 		ui.start_comm(out)
 		lsp.start_ark_lsp(out)
-		out.vars = vars.new(kernel)
+		out.vars = vars.init(kernel)
 	end
 	return out
 end

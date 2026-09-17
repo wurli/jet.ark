@@ -20,7 +20,7 @@ M.resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, function(k
 		return
 	end
 
-	local win = k.img:win()
+	local win = k.img:win():winnr()
 	if not win then
 		return
 	end
