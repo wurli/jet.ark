@@ -10,9 +10,11 @@ local Kernel = require("jet.core.kernel")
 ---@field plot_sizes table<string, jet.ark.comm.plot_backend.plot_size>
 ---@field ark_lsp_name string?
 ---@field ark_lsp_starting boolean
----@field vars? ark.Kernel.Vars
 local ArkKernel = setmetatable({}, { __index = Kernel })
 ArkKernel.__index = ArkKernel ---@private
+
+---@class (partial) jet.Kernel.Buffers
+---@field vars ark.Kernel.Vars
 
 ---Modifies `kernel` in place
 ---@param kernel jet.Kernel
@@ -39,7 +41,7 @@ ArkKernel.from_kernel = function(kernel)
 		help.start_comm(out)
 		ui.start_comm(out)
 		lsp.start_ark_lsp(out)
-		out.vars = vars.init(kernel)
+		out.bufs.vars = vars.init(kernel)
 	end
 	return out
 end

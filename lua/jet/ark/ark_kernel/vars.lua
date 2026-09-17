@@ -19,7 +19,6 @@ local backend = require("jet.ark.comm.variables-backend")
 ---@field vars_flat (ark.flat_var | string)[]
 ---@field version integer
 ---@field length integer
----@field kernel ark.Kernel
 ---@field comm_id string
 local Vars = setmetatable({}, { __index = buf })
 Vars.__index = Vars ---@private
@@ -32,7 +31,7 @@ Vars.init = function(kernel)
 		ns = vim.api.nvim_create_namespace("ark." .. kernel.session_id),
 		kernel = kernel,
 		name = kernel:friendly_name() .. " - Variables",
-		layout_pos = 2,
+		win_name = "secondary",
 	})
 
 	out.vars = {}
@@ -380,6 +379,11 @@ function Vars:render()
 			unpack_vars(categories[c], {}, 0)
 			table.insert(self.vars_flat, "")
 		end
+	end
+
+	if #self.vars_flat == 0 then
+		local text = "No variables to display"
+		return { text }, { { { 0, { hl_group = "Comment", end_col = #text } } } }
 	end
 
 	---@param f fun(v: ark.flat_var): integer

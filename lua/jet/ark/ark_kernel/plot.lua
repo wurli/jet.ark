@@ -16,11 +16,11 @@ end
 
 ---@param k ark.Kernel
 M.resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, function(k)
-	if not k.img or not k.img.img_file then
+	if not k.bufs.img or not k.bufs.img.img_file then
 		return
 	end
 
-	local win = k.img:win():winnr()
+	local win = k.bufs.img:win():winnr()
 	if not win then
 		return
 	end
@@ -29,7 +29,7 @@ M.resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, function(k
 	-- underlying file changes, so instead of fighting just append a number
 	-- to the filename and increment whenever the plot updates.
 	local timestamp, comm_id, iteration =
-		k.img.img_file:match("(%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d)_([^._]+)_(%d%d%d%d)%.[^.]+$")
+		k.bufs.img.img_file:match("(%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d)_([^._]+)_(%d%d%d%d)%.[^.]+$")
 	timestamp = timestamp or ""
 	iteration = iteration and string.format("%04d", (tonumber(iteration) or 0) + 1) or ""
 
@@ -54,7 +54,7 @@ M.resize_curr_plot_debounced = require("jet.ark.utils").debounce(200, function(k
 	-- })
 	---@diagnostic disable-next-line: param-type-mismatch
 	require("jet.ark.comm.plot-backend").render(k, comm_id, new_settings, function(res)
-		vim.fs.rm(k:img_dir() .. "/" .. k.img.img_file, { force = true })
+		vim.fs.rm(k:img_dir() .. "/" .. k.bufs.img.img_file, { force = true })
 		local file = k:img_save(res.data, res.mime_type, timestamp .. "_" .. comm_id .. "_" .. iteration)
 		if file then
 			k.plot_sizes = k.plot_sizes or {}

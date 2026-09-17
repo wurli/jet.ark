@@ -17,6 +17,7 @@ local T = new_set({
 			]])
 
 			local ok = vim.wait(10000, function() return child.lua_get("_G.k and _G.k.session_id") ~= vim.NIL end)
+			assert(ok, "Failed to start kernel")
 		end,
 		post_once = child.stop,
 	},

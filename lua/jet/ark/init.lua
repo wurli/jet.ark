@@ -72,8 +72,8 @@ end
 local setup_vars = function()
 	vim.api.nvim_create_user_command("ArkVars", function(_args)
 		utils.get_ark_kernel(function(k)
-			if k.vars then
-				k.vars:open()
+			if k.bufs.vars then
+				k.bufs.vars:open()
 			end
 		end)
 	end, { nargs = 0 })
