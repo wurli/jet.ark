@@ -43,12 +43,12 @@ creating keymaps, e.g. to send code to the R console.
 
 ## Usage
 
-Use `:Jet repl` to open R. Ark's LSP will start automatically and attach to any
-R buffer you have open.
+You can open the R console using `:Jet`, or using jet.nvim's Lua api:
 
 ``` lua
--- You can set a keymap to toggle the R console like so
 vim.keymap.set("n", "<leader>jr", function()
-	require("jet.core.api").get_any({ filetype = "r" }, {}, function(k) k:toggle_term() end)
+	require("jet.api").get_kernel({ filetype = "r" }, function(k) k:term_toggle() end)
 end, { desc = "Open R (Jet)" })
 ```
+
+Ark's LSP will start automatically and attach to any R buffer you have open.
