@@ -11,22 +11,23 @@ local T = new_set({
 			child.lua([[
 				require("jet.api").get_kernel({ filtetype = "r" }, function(k)
 					k:start_lua_client(function()
-						_G.kernel = k
+						_G.k = k
 					end)
 				end)
 			]])
 
-			vim.wait(10000, function() return child.lua_get("_G.kernel and _G.kernel.session_id") ~= vim.NIL end)
+			local ok = vim.wait(10000, function() return child.lua_get("_G.k and _G.k.session_id") ~= vim.NIL end)
+			assert(ok, "Failed to start kernel")
 		end,
 		post_once = child.stop,
 	},
 })
 
 T["Console resize is registered in R"] = function()
-	child.lua([[_G.kernel:term_open()]])
+	child.lua([[_G.k:term_open()]])
 
 	local term_open, console_win = vim.wait(5000, function()
-		local win = child.lua_get("_G.kernel.term:win()")
+		local win = child.lua_get("_G.k.bufs.term:win():winnr()")
 		return win ~= vim.NIL, win
 	end)
 
@@ -35,7 +36,7 @@ T["Console resize is registered in R"] = function()
 	local get_width = function()
 		child.lua([[
 			_G.width = nil
-			_G.kernel:send_lua('getOption("width")', false, function(res)
+			_G.k:send_lua('getOption("width")', false, function(res)
 				_G.width = res.content.data["text/plain"]
 			end)
 		]])
