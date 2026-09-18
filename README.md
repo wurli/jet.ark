@@ -4,6 +4,8 @@ jet.ark is an R plugin for Neovim, powered by the
 [Ark](https://github.com/posit-dev/ark) jupyter kernel. jet.ark is an extension
 plugin for [jet.nvim](https://github.com/wurli/jet.nvim).
 
+https://github.com/user-attachments/assets/6b08cf62-bd00-4470-b488-5953b654c11c
+
 ## Features
 
 * [x] R console implemented via Jet
