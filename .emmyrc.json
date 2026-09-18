@@ -1,7 +1,8 @@
 {
   "diagnostics": {
     "disable": [
-      "unnecessary-if"
+      "unnecessary-if",
+      "unnecessary-assert"
     ]
   },
   "runtime": {
@@ -16,13 +17,14 @@
       "target",
       "deps",
       "debug",
-	  "resources"
+      "resources"
     ],
     "ignoreGlobs": [
       "*.log"
     ],
     "library": [
       "$VIMRUNTIME",
+      "~/Repos/jet.nvim",
       "./deps"
     ]
   }

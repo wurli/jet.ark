@@ -1,116 +1,59 @@
-local config = require("jet.ark.config")
-local lsp = require("jet.ark.lsp")
+local utils = require("jet.ark.utils")
 
 local M = {}
 
----@param opts? Partial<jet.ark.config>
-M.setup = function(opts)
-	assert(
-		require("jet").did_setup(),
-		'jet.nvim has not done setup; run `require("jet").setup({})` before loading jet.ark'
-	)
-
-	config.set(opts or {})
-	require("jet.ark.kernelspec").install()
-	require("jet.ark.plot").setup()
-
-	----------------------------
-	--    Ark Kernel Setup    --
-	----------------------------
-
-	-- Register ark.jet's special kernelspec as the one to use
-	local jet_cfg = require("jet.core.config").options
-
-	-- Register a method for getting the current 'expression' for R files
-	require("jet").filetype.r = require("jet.ark.get_code")
-
-	-- Let jet know that Ark is for the 'r' filetype
-	---@param k jet.Kernel
-	table.insert(jet_cfg.hooks.on_kernel_init, function(k)
-		if k.spec_path == config.data.kernelspec_path then
-			k.filetype = "r"
-			k.priority = 200
-			k.known_comms["positron.plot"] = require("jet.ark.plot").comm_open_handler
-		end
-	end)
-
-	----------------------------
-	--    Ark UI features     --
-	----------------------------
-
-	---@param k jet.Kernel
-	jet_cfg.hooks.on_lua_client_start.start_comms = function(k)
-		-- We don't need to open a listener on the UI comm since right now only
-		-- `working_directory` and `prompt_state` come through
-		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
-			-- This tells Ark to listen for ui comm messages, e.g. like
-			-- setConsoleWidth below.
-			local ui_comm_id = k:comm_open("positron.ui")
-
-			require("jet.ark.comm.ui-backend").frontend_ready(k, ui_comm_id, { start_type = "new" })
-			require("jet.ark.comm.ui-backend").did_change_plots_render_settings(k, ui_comm_id, {
-				settings = {
-					format = "png",
-					pixel_ratio = 4,
-					size = {
-						height = 400 * 3,
-						width = 640 * 3,
-					},
-				},
-			})
-			k:comm_open("positron.help", {}, { listener = require("jet.ark.help").listener })
-			k:comm_open("positron.variables", {}, { listener = require("jet.ark.variables").listener })
-			lsp.start_ark_lsp(k)
-		end
-	end
-
-	jet_cfg.hooks.on_kernel_close.stop_ark_lsp = function(k)
-		if k.metadata.ark_lsp then
-			vim.lsp.enable(k.metadata.ark_lsp, false)
-			vim.lsp.config[k.metadata.ark_lsp] = {}
-		end
-	end
-
-	require("jet.ark.variables").setup()
-	require("jet.ark.help").setup()
-
+local setup_plot_auto_resize = function()
 	vim.api.nvim_create_autocmd("WinResized", {
-		group = vim.api.nvim_create_augroup("jet.ark", { clear = true }),
+		group = vim.api.nvim_create_augroup("jet.ark.plot-resized", { clear = true }),
 		callback = function()
-			local resized_wins = vim.v.event.windows --[[@as integer[] ]]
-
-			for _, win in ipairs(resized_wins) do
+			for _, win in ipairs(vim.v.event.windows or {}) do
 				local buf = vim.api.nvim_win_get_buf(win)
-				if vim.b[buf].jet then
-					local session_id = vim.b[buf].jet.session_id --[[@as string]]
-					if not session_id then
-						return
-					end
-
-					local kernel = require("jet.core.manager").kernels[session_id]
-					if not kernel then
-						return
-					end
-
-					if kernel.spec_path == config.data.kernelspec_path then
-						for comm_id, comm in pairs(kernel.open_comms) do
-							if comm.name == "positron.ui" then
-								require("jet.ark.comm.ui-backend").call_method(kernel, comm_id, {
-									method = "setConsoleWidth",
-									params = { vim.api.nvim_win_get_width(win) - 2 },
-								})
-							end
-						end
+				if vim.b[buf].jet and vim.bo[buf].filetype == "jetimg" then
+					local session_id = vim.b[buf].jet.session_id
+					local k = session_id and require("jet.api").get_kernel_by_id(session_id) --[[@as ark.Kernel? ]]
+					if k and k.subclass == "ark" then
+						k:resize_curr_plot()
 					end
 				end
 			end
 		end,
 	})
+end
 
-	----------------------------
-	--       Ark LSP          --
-	----------------------------
+local setup_console_auto_resize = function()
+	vim.api.nvim_create_autocmd("WinResized", {
+		group = vim.api.nvim_create_augroup("jet.ark.console-resized", { clear = true }),
+		callback = function()
+			local resized_wins = vim.v.event.windows --[[@as integer[] ]]
+			for _, win in ipairs(resized_wins) do
+				local buf = vim.api.nvim_win_get_buf(win)
+				local session_id = vim.b[buf].jet and vim.b[buf].jet.session_id --[[@as string]]
+				local kernel = session_id and require("jet.api").get_kernel_by_id(session_id) --[[@as ark.Kernel?]]
+				if kernel and kernel.subclass == "ark" then
+					kernel:set_console_width(vim.api.nvim_win_get_width(win))
+				end
+			end
+		end,
+	})
+end
 
+local setup_help = function()
+	vim.api.nvim_create_user_command("ArkHelp", function(args)
+		local topic = args.fargs[1]
+
+		if not topic then
+			local help_win = require("jet.ark.ark_kernel.help").help_win
+			if vim.api.nvim_win_is_valid(help_win) then
+				vim.api.nvim_set_current_win(help_win)
+				return
+			end
+		end
+
+		utils.get_ark_kernel(function(k) k:request_help(topic) end)
+	end, { nargs = "?" })
+end
+
+local setup_lsp = function()
 	-- Start the LSP when an R file is entered. NB for most LSPs it's better to
 	-- use `FileType` since you don't expect the LSP to stop. But Ark closes if
 	-- we quit the REPL, so we will want to check if it needs restarting.
@@ -121,22 +64,63 @@ M.setup = function(opts)
 			if vim.lsp.get_clients({ name = "ark" })[1] then
 				return
 			end
-			lsp.start_ark_lsp()
+			utils.get_ark_kernel(function(new_kernel) new_kernel:start_ark_lsp() end)
 		end,
 	})
+end
 
-	-- For convenience, if we close Ark _and_ we're in an R file, start the LSP
-	-- up again (this happens on BufEnter, but BufEnter isn't triggered if
-	-- we're in an R file when the kernel is closed)
-	---@param k jet.Kernel
-	table.insert(jet_cfg.hooks.on_kernel_close, function(k)
-		if k.filetype == "r" and k.spec.display_name:lower():find("ark") then
-			-- Since the LSP has been stopped we wipe the config, since this
-			-- records the IP and port the prev LSP was running on.
-			vim.lsp.config("ark", {})
-			if vim.bo.filetype == "r" then
-				lsp.start_ark_lsp()
+local setup_vars = function()
+	vim.api.nvim_create_user_command("ArkVars", function(_args)
+		utils.get_ark_kernel(function(k)
+			if k.bufs.vars then
+				k.bufs.vars:open()
 			end
+		end)
+	end, { nargs = 0 })
+end
+
+---@param opts? Partial<jet.ark.config>
+M.setup = function(opts)
+	local jet = require("jet")
+	local config = require("jet.ark.config")
+
+	assert(jet.did_setup(), 'jet.nvim has not done setup; run `require("jet").setup({})` before loading jet.ark')
+
+	config.set(opts or {})
+
+	local jet_nvim_version_actual = vim.version.parse(require("jet.core.config").jet_nvim_version)
+	local jet_nvim_version_required = vim.version.parse(config.data.jet_nvim_required)
+
+	assert(
+		jet_nvim_version_actual and jet_nvim_version_required and jet_nvim_version_actual >= jet_nvim_version_required,
+		string.format(
+			"Installed jet.nvim version %s is lower than required %s. Please update jet.nvim to use jet.ark",
+			jet_nvim_version_actual,
+			jet_nvim_version_required
+		)
+	)
+
+	require("jet.ark.kernelspec").install()
+	require("jet.ark.highlights").setup()
+
+	setup_plot_auto_resize()
+	setup_console_auto_resize()
+	setup_help()
+	setup_lsp()
+	setup_vars()
+
+	----------------------------
+	--    Ark Kernel Setup    --
+	----------------------------
+	-- Register a method for getting the current 'expression' for R files
+	jet.filetype.r = require("jet.ark.get_code")
+
+	-- Subclass all kernels with jet.ark's special kernelspec as ark.Kernel
+	---@param k jet.Kernel
+	table.insert(jet.hooks.on_kernel_init, function(k)
+		if k.spec_path == config.data.kernelspec_path then
+			-- Modifies the jet.Kernel object in place
+			require("jet.ark.ark_kernel").from_kernel(k)
 		end
 	end)
 end

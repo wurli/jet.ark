@@ -79,7 +79,7 @@ jobs:
       - name: Run emmylua_check
         run: |
           export VIMRUNTIME=$(nvim --clean --headless +'lua io.write(vim.env.VIMRUNTIME)' +qa)
-          emmylua_check . --warnings-as-errors --output-format github
+          emmylua_check . --warnings-as-errors
 
       # Ark needs a real R at runtime. Install it out-of-band; the script only
       # downloads the ark binary and writes the kernelspec.

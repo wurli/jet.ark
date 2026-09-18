@@ -1,0 +1,468 @@
+local buf = require("jet.core.kernel.buf")
+local backend = require("jet.ark.comm.variables-backend")
+
+---@class ark.var : jet.ark.comm.variables_backend.variable
+---@field expanded? boolean
+---@field children? ark.var[]
+
+---@class ark.flat_var : ark.var
+---@field path string[]
+---@field indent integer
+---@field display_name_w integer
+---@field display_value_w integer
+---@field display_type_w integer
+
+---@class ark.Kernel.Vars : jet.Buf
+---@field ns integer
+---@field buf integer
+---@field vars ark.var[]
+---@field vars_flat (ark.flat_var | string)[]
+---@field version integer
+---@field length integer
+---@field comm_id string
+local Vars = setmetatable({}, { __index = buf })
+Vars.__index = Vars ---@private
+
+---@param kernel ark.Kernel
+Vars.init = function(kernel)
+	assert(kernel.session_id)
+
+	local out = buf.init(Vars, {
+		ns = vim.api.nvim_create_namespace("ark." .. kernel.session_id),
+		kernel = kernel,
+		name = kernel:friendly_name() .. " - Variables",
+		win_name = "secondary",
+	})
+
+	out.vars = {}
+	out.vars_flat = {}
+	out.length = 0
+	out.comm_id = nil
+	out.version = 0
+
+	vim.bo[out.buf].filetype = "arkvars"
+	vim.bo[out.buf].modifiable = false
+	vim.bo[out.buf].buftype = "nofile"
+
+	out.comm_id = out:start_comm()
+	out:set_keymaps()
+
+	vim.api.nvim_create_autocmd("WinResized", {
+		group = vim.api.nvim_create_augroup("ark." .. kernel.session_id, { clear = true }),
+		callback = function()
+			local win = out:win():winnr(out.buf)
+			if win then
+				local resized = vim.v.event.windows --[[@as integer[] ]]
+				for _, resized_win in ipairs(resized) do
+					if win == resized_win then
+						out:redraw()
+					end
+				end
+			end
+		end,
+	})
+
+	return out
+end
+
+---@param path string[]
+function Vars:collapse(path)
+	local var = self:get_var(path)
+	if var.expanded then
+		var.expanded = false
+		self:redraw()
+	end
+end
+
+---@param path string[]
+function Vars:expand(path)
+	local var = self:get_var(path)
+	if var.expanded then
+		return
+	end
+	var.expanded = true
+	if var.children then
+		self:redraw()
+	elseif var.has_children then
+		self:inspect(path)
+	end
+end
+
+---@param a any[]
+---@param b any[]
+---@return boolean
+local list_eq = function(a, b)
+	if #a ~= #b then
+		return false
+	end
+	for i = 1, #a do
+		if a[i] ~= b[i] then
+			return false
+		end
+	end
+	return true
+end
+
+function Vars:set_keymaps()
+	vim.keymap.set("n", "q", "<cmd>:q<cr>", { buffer = self.buf, silent = true })
+
+	vim.keymap.set("n", "<enter>", function()
+		local var = self.vars_flat[vim.fn.line(".")]
+		if var and var.path then
+			if var.expanded then
+				self:collapse(var.path)
+			else
+				self:expand(var.path)
+			end
+		end
+	end, { buffer = self.buf })
+
+	vim.keymap.set("n", "<leader>y", function()
+		local var_flat = self.vars_flat[vim.fn.line(".")]
+		if var_flat and var_flat.path then
+			self:clipboard_format(var_flat.path, "text/plain", function(text) vim.fn.setreg(vim.v.register, text) end)
+		end
+	end, { buffer = self.buf })
+
+	---@param direction integer
+	local next_var = function(direction)
+		for i = vim.fn.line(".") + direction, direction > 0 and #self.vars_flat or 1, direction do
+			local var = self.vars_flat[i]
+			if type(var) == "table" and var.indent == 0 then
+				vim.api.nvim_win_set_cursor(0, { i, 0 })
+				return
+			end
+		end
+	end
+
+	vim.keymap.set({ "n", "x" }, "]]", function() next_var(1) end, { buffer = self.buf })
+	vim.keymap.set({ "n", "x" }, "[[", function() next_var(-1) end, { buffer = self.buf })
+
+	vim.keymap.set("n", ">", function()
+		local var = self.vars_flat[vim.fn.line(".")]
+		if var and var.path then
+			self:expand(var.path)
+		end
+	end, { buffer = self.buf, remap = true })
+
+	vim.keymap.set("n", "<", function()
+		local var = self.vars_flat[vim.fn.line(".")]
+		if type(var) ~= "table" then
+			return
+		end
+		if var.expanded then
+			self:collapse(var.path)
+		elseif #var.path > 1 then
+			local parent_path = {}
+			for i = 1, #var.path - 1 do
+				table.insert(parent_path, var.path[i])
+			end
+
+			self:collapse(parent_path)
+
+			for line, line_var in ipairs(self.vars_flat) do
+				if type(line_var) == "table" and list_eq(line_var.path, parent_path) then
+					vim.api.nvim_win_set_cursor(0, { line, 0 })
+					return
+				end
+			end
+		end
+	end, { buffer = self.buf })
+
+	vim.keymap.set("n", "<leader>d", function()
+		local cursor = vim.api.nvim_win_get_cursor(0)
+		local var = self.vars_flat[cursor[1]]
+		if type(var) == "table" and #var.path == 1 then
+			self:delete(var.path)
+		end
+		cursor[1] = cursor[1] - 1
+		vim.api.nvim_win_set_cursor(0, cursor)
+	end, { buffer = self.buf })
+
+	vim.keymap.set("n", "X", function() self:clear(true) end)
+end
+
+function Vars:start_comm()
+	return self.kernel:comm_open("positron.variables", {}, {
+		listener = function(msg)
+			local data = msg.content.data
+			local method = data.method --[[@as "refresh" | "update"]]
+
+			if method == "refresh" then
+				local params = data.params --[[@as jet.ark.comm.variables_frontend.refresh.Params]]
+				self.length = params.length
+				self.version = params.version
+				self.vars = params.variables
+				self:redraw()
+			elseif method == "update" then
+				local params = data.params --[[@as jet.ark.comm.variables_frontend.update.Params]]
+				self.version = params.version
+				for _, key in ipairs(params.removed) do
+					self:rm(key)
+				end
+				for _, var in ipairs(params.assigned) do
+					table.insert(self.vars, var)
+				end
+				self:redraw()
+			end
+		end,
+	})
+end
+
+---@param cb? fun()
+function Vars:list(cb)
+	backend.list(self.kernel, self.comm_id, function(res)
+		self.vars = res.variables
+		self.length = res.length
+		self.version = res.version
+		if cb then
+			cb()
+		end
+	end)
+end
+
+---@param hidden boolean
+function Vars:clear(hidden)
+	if hidden == nil then
+		hidden = true
+	end
+	backend.clear(self.kernel, self.comm_id, { include_hidden_objects = hidden })
+end
+
+function Vars:rm(key)
+	for i, var in ipairs(self.vars) do
+		if var.access_key == key then
+			table.remove(self.vars, i)
+			return
+		end
+	end
+end
+
+---@param names string | string[]
+function Vars:delete(names)
+	names = (type(names) == "string" and { names } or names) --[[@as string[] ]]
+	backend.delete(self.kernel, self.comm_id, { names = names }, function(deleted)
+		for _, var in ipairs(deleted) do
+			self:rm(var)
+		end
+		self:redraw()
+		return true
+	end)
+end
+
+---@param path string[]
+function Vars:get_var(path)
+	local var ---@type ark.var
+	local children = self.vars ---@type ark.var[] | nil
+	for _, key in ipairs(path) do
+		assert(children, "Failed to expand variable")
+		for _, vi in ipairs(children) do
+			if vi.access_key == key then
+				var = vi
+				break
+			end
+		end
+		assert(var, "Failed to expand variable")
+		children = var.children
+	end
+	return var
+end
+
+---@param path string[]
+function Vars:inspect(path)
+	assert(#path > 0)
+	backend.inspect(self.kernel, self.comm_id, { path = path }, function(res)
+		local var = self:get_var(path)
+		var.children = res.children
+		var.expanded = true
+		self:redraw()
+	end)
+end
+
+---@param path string[]
+---@param format? "text/plain" | "text/html"
+---@param cb fun(text: string)
+function Vars:clipboard_format(path, format, cb)
+	assert(#path > 0)
+	format = format or "text/plain"
+
+	backend.clipboard_format(self.kernel, self.comm_id, { path = path, format = format }, function(res)
+		cb(res.content)
+		return true
+	end)
+end
+
+function Vars:open()
+	local win = buf.open(self, nil)
+	self:list(function() self:redraw() end)
+	return win
+end
+
+function Vars:redraw()
+	local lines, extmarks = self:render()
+	vim.bo[self.buf].modifiable = true
+	vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, lines)
+	vim.bo[self.buf].modifiable = false
+	vim.api.nvim_buf_clear_namespace(self.buf, self.ns, 0, -1)
+	for line, marks in ipairs(extmarks) do
+		for _, mark in ipairs(marks) do
+			vim.api.nvim_buf_set_extmark(self.buf, self.ns, line - 1, mark[1], mark[2])
+		end
+	end
+end
+
+local icons = {
+	caret_right = "",
+	caret_down = "",
+	ellipsis = "…",
+}
+
+---@alias ark.extmark_args [ integer, vim.api.keyset.set_extmark ]
+
+---@return string[]
+---@return ark.extmark_args[][]
+function Vars:render()
+	---See https://github.com/posit-dev/positron/blob/main/src/vs/workbench/services/positronVariables/common/positronVariablesInstance.ts#L723
+	---@param kind jet.ark.comm.variables_backend.variable["kind"]
+	local category = function(kind)
+		return kind == "table" and "DATA"
+			or kind == "function" and "FUNCTIONS"
+			or kind == "class" and "CLASSES"
+			or "VALUES"
+	end
+
+	-- Bucket variables by category first to ensure proper sorting later on
+	local categories = {
+		DATA = {}, ---@type ark.var[]
+		FUNCTIONS = {}, ---@type ark.var[]
+		CLASSES = {}, ---@type ark.var[]
+		VALUES = {}, ---@type ark.var[]
+	}
+	for _, var in ipairs(self.vars) do
+		table.insert(categories[category(var.kind)], var)
+	end
+
+	---@param vars ark.var[]
+	---@param path string[]
+	---@param level integer
+	local function unpack_vars(vars, path, level)
+		for _, var in ipairs(vars) do
+			local var_path = vim.list_extend(vim.deepcopy(path), { var.access_key })
+
+			local var_flat = {}
+			for k, v in pairs(var) do
+				if k ~= "children" then
+					---@diagnostic disable-next-line: assign-type-mismatch
+					var_flat[k] = v
+				end
+			end
+
+			var_flat.path = var_path
+			var_flat.indent = level * 2
+			var_flat.display_name_w = vim.fn.strwidth(var_flat.display_name)
+			var_flat.display_value_w = vim.fn.strwidth(var_flat.display_value)
+			var_flat.display_type_w = vim.fn.strwidth(var_flat.display_type)
+
+			table.insert(self.vars_flat, var_flat)
+
+			if var.expanded and var.children then
+				unpack_vars(var.children, var_path, level + 1)
+			end
+		end
+	end
+
+	-- Unpacking each category in order ensures proper sorting
+	self.vars_flat = {}
+	for _, c in ipairs({ "DATA", "FUNCTIONS", "CLASSES", "VALUES" }) do
+		if vim.tbl_count(categories[c]) > 0 then
+			table.insert(self.vars_flat, c)
+			unpack_vars(categories[c], {}, 0)
+			table.insert(self.vars_flat, "")
+		end
+	end
+
+	if #self.vars_flat == 0 then
+		local text = "No variables to display"
+		return { text }, { { { 0, { hl_group = "Comment", end_col = #text } } } }
+	end
+
+	---@param f fun(v: ark.flat_var): integer
+	local var_max = function(f)
+		local widths = vim.tbl_map(function(var) return type(var) == "table" and f(var) or 0 end, self.vars_flat)
+		return math.max(0, unpack(widths))
+	end
+
+	local name_max_width = var_max(function(v) return v.display_name_w + v.indent end)
+	local type_max_width = var_max(function(v) return v.display_type_w end)
+
+	local lines = {} ---@type string[]
+	local marks = {} ---@type ark.extmark_args[][]
+
+	local w = self:win()
+	local win = w and w:winnr(self.buf)
+	local win_width = win and vim.api.nvim_win_get_width(win) or math.floor(vim.o.columns / 2)
+
+	for _, v in ipairs(self.vars_flat) do
+		if type(v) == "string" then
+			table.insert(lines, v)
+			table.insert(marks, { { 0, { hl_group = "ArkVarsCategory", end_col = #v } } })
+		else
+			-- Indent
+			local indent = string.rep(" ", v.indent)
+
+			-- Expanded icon
+			local caret = (not v.has_children) and " " or v.expanded and icons.caret_down or icons.caret_right
+
+			-- Display name
+			local name = v.display_name
+			local name_pad = string.rep(" ", name_max_width - v.display_name_w)
+
+			-- Display value
+			local val = v.display_value
+
+			-- Display type
+			local type = v.display_type
+			local type_pad = string.rep(" ", type_max_width - v.display_type_w)
+
+			-- Final cols for name + type
+			local name_col = indent .. caret .. " " .. name .. name_pad
+			local type_col = type_pad .. type
+
+			-- Value takes remaining space in the window
+			local name_and_type_width = vim.fn.strwidth(name_col .. type_col) + 4
+			local available_val_width = math.max(win_width - name_and_type_width, 10)
+
+			local val_n_pad = available_val_width - v.display_value_w
+			local val_pad = val_n_pad <= 0 and "" or string.rep(" ", val_n_pad)
+			local val_trunc = val_n_pad >= 0 and val
+				or vim.fn.strcharpart(val, 0, v.display_value_w + val_n_pad - 1) .. icons.ellipsis
+			local val_col = val_trunc .. val_pad
+
+			-- Combine all
+			table.insert(lines, name_col .. "  " .. val_col .. "  " .. type_col)
+
+			-- Indent highlight
+			local caret_hl = { v.indent, { hl_group = "ArkVarsIndent", end_col = v.indent + 1 } } ---@type ark.extmark_args
+
+			-- Var name highlight
+			local name_start = v.indent + #caret + 1
+			local name_end = name_start + #name
+			local name_hl = { name_start, { hl_group = "ArkVarsName", end_col = name_end } } ---@type ark.extmark_args
+
+			-- Var value highlight
+			local val_start = #name_col + 2
+			local val_end = val_start + #val_trunc
+			local val_hl = { val_start, { hl_group = "ArkVarsValue", end_col = val_end } } ---@type ark.extmark_args
+
+			-- Var type highlight
+			local type_start = #(name_col .. "  " .. val_col .. "  " .. type_pad)
+			local type_hl = { type_start, { hl_group = "ArkVarsType", end_col = type_start + #type } } ---@type ark.extmark_args
+
+			table.insert(marks, { caret_hl, name_hl, val_hl, type_hl })
+		end
+	end
+
+	return lines, marks
+end
+
+return Vars

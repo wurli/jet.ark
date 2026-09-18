@@ -21,20 +21,19 @@ local maybe_trim_line = function(lnum)
 	end)
 end
 
-M.pipe = function()
+---@param text string
+local insert_with_pad = function(text)
 	local cnum, lnum = vim.fn.col("."), vim.fn.line(".")
 	local prev_char = vim.api.nvim_get_current_line():sub(cnum - 1, cnum - 1)
 	local lead = prev_char == " " and "" or " "
-	vim.api.nvim_put({ lead .. "|> " }, "c", false, true)
+	vim.api.nvim_put({ lead .. text .. " " }, "c", false, true)
 	maybe_trim_line(lnum)
 end
 
-M.assign = function()
-	local cnum, lnum = vim.fn.col("."), vim.fn.line(".")
-	local prev_char = vim.api.nvim_get_current_line():sub(cnum - 1, cnum - 1)
-	local lead = prev_char == " " and "" or " "
-	vim.api.nvim_put({ lead .. "<- " }, "c", false, true)
-	maybe_trim_line(lnum)
-end
+---@param symbol string? Defaults to `|>`
+M.pipe = function(symbol) insert_with_pad(symbol or "|>") end
+
+---@param symbol string? Defaults to `<-`
+M.assign = function(symbol) insert_with_pad(symbol or "<-") end
 
 return M

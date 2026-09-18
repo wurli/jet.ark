@@ -40,9 +40,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_backend.frontend_ready.Params
-M.frontend_ready = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "frontend_ready", params)
-end
+M.frontend_ready = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "frontend_ready", params) end
 
 ---@class jet.ark.comm.ui_backend.call_method.Params
 ---@field method string The method to call inside the interpreter

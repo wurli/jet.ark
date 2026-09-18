@@ -16,9 +16,7 @@ local M = {}
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.plot_frontend.update.Params
-M.update = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "update", params)
-end
+M.update = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "update", params) end
 
 ---@class jet.ark.comm.plot_frontend.show.Params
 ---@field pre_render? jet.ark.comm.plot_backend.plot_result Optional pre-rendering data for immediate display
@@ -27,8 +25,6 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.plot_frontend.show.Params
-M.show = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "show", params)
-end
+M.show = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "show", params) end
 
 return M

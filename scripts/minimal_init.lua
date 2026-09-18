@@ -11,16 +11,16 @@ vim.env.JUPYTER_PATH = vim.fn.getcwd() .. "/test-kernels"
 -- plugin on rtp.
 if #vim.api.nvim_list_uis() == 0 then
 	vim.opt.runtimepath:prepend("deps/mini.nvim")
-	vim.opt.runtimepath:prepend("deps/jet.nvim")
+	local local_jet_nvim = vim.fs.normalize("~/Repos/jet.nvim")
+	local jet_install = vim.uv.fs_stat(local_jet_nvim) and local_jet_nvim or "deps/jet.nvim"
+	vim.opt.runtimepath:prepend(jet_install)
 
 	---------------------------------------------------------------------------
 	--          Set up mini.test
 	---------------------------------------------------------------------------
 	require("mini.test").setup({
 		collect = {
-			find_files = function()
-				return vim.fn.globpath("tests", "test_*.lua", true, true)
-			end,
+			find_files = function() return vim.fn.globpath("tests", "test_*.lua", true, true) end,
 		},
 		execute = {
 			reporter = require("mini.test").gen_reporter.stdout({ quit_on_finish = true }),
@@ -67,6 +67,7 @@ if #vim.api.nvim_list_uis() == 0 then
 	local paths = dl.get_jet_paths()
 
 	vim.print({
+		jet_nvim_installation = jet_install,
 		jet_paths = paths,
 		jet_bin = dl.check_bin_version(),
 		jet_lib = dl.check_lib_version(),

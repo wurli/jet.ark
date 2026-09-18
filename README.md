@@ -1,10 +1,10 @@
 # jet.ark
 
-jet.ark is an Neovim plugin which extends
-[jet.nvim](https://github.com/wurli/jet.nvim) to provide language features for
-R using the [Ark](https://github.com/posit-dev/ark) jupyter kernel.
+jet.ark is an R plugin for Neovim, powered by the
+[Ark](https://github.com/posit-dev/ark) jupyter kernel. jet.ark is an extension
+plugin for [jet.nvim](https://github.com/wurli/jet.nvim).
 
-
+https://github.com/user-attachments/assets/6b08cf62-bd00-4470-b488-5953b654c11c
 
 ## Features
 
@@ -14,9 +14,9 @@ R using the [Ark](https://github.com/posit-dev/ark) jupyter kernel.
 * [x] A LSP server which is aware of your R session (e.g. providing completions
   for dataframe column names and other session-specific stuff)
 * [x] Resizable plots
-* [x] `:ArkHelp {topic}` command (with followable hyperlinks), powered by Ark's `help` comm
+* [x] `:ArkHelp {topic}` brings up a help viewer, powered by Ark's `help` comm
+* [x] `:ArkVars` brings up a variables pane, powered by Ark's `variables` comm
 * [ ] Debug adaptor
-* [ ] Variables pane
 * [ ] Connections pane
 
 ## Installation
@@ -43,14 +43,12 @@ creating keymaps, e.g. to send code to the R console.
 
 ## Usage
 
-Use `:Jet repl` to open R. Ark's LSP will start automatically and attach to any
-R buffer you have open.
+You can open the R console using `:Jet`, or using jet.nvim's Lua api:
 
 ``` lua
--- You can set a keymap to toggle the R console like so
 vim.keymap.set("n", "<leader>jr", function()
-	require("jet.core.api").get_any({ filetype = "r" }, {}, function(k)
-		k:toggle_term()
-	end)
+	require("jet.api").get_kernel({ filetype = "r" }, function(k) k:term_toggle() end)
 end, { desc = "Open R (Jet)" })
 ```
+
+Ark's LSP will start automatically and attach to any R buffer you have open.

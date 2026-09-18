@@ -82,18 +82,14 @@ local M = {}
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.busy.Params
-M.busy = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "busy", params)
-end
+M.busy = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "busy", params) end
 
 ---Clear the console
 ---
 ---Use this to clear the console.
 ---@param kernel jet.Kernel
 ---@param comm_id string
-M.clear_console = function(kernel, comm_id)
-	return util.rpc_request(kernel, comm_id, "clear_console", nil)
-end
+M.clear_console = function(kernel, comm_id) return util.rpc_request(kernel, comm_id, "clear_console", nil) end
 
 ---@class jet.ark.comm.ui_frontend.open_editor.Params
 ---@field file string The path of the file to open
@@ -108,9 +104,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.open_editor.Params
-M.open_editor = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "open_editor", params)
-end
+M.open_editor = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "open_editor", params) end
 
 ---@class jet.ark.comm.ui_frontend.new_document.Params
 ---@field contents string Document contents
@@ -136,9 +130,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_message.Params
-M.show_message = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "show_message", params)
-end
+M.show_message = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "show_message", params) end
 
 ---@class jet.ark.comm.ui_frontend.show_question.Params
 ---@field title string The title of the dialog
@@ -213,9 +205,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.prompt_state.Params
-M.prompt_state = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "prompt_state", params)
-end
+M.prompt_state = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "prompt_state", params) end
 
 ---@class jet.ark.comm.ui_frontend.working_directory.Params
 ---@field directory string The new working directory
@@ -299,9 +289,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.open_workspace.Params
-M.open_workspace = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "open_workspace", params)
-end
+M.open_workspace = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "open_workspace", params) end
 
 ---Path to the workspace folder
 ---
@@ -375,9 +363,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_url.Params
-M.show_url = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "show_url", params)
-end
+M.show_url = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "show_url", params) end
 
 ---@class jet.ark.comm.ui_frontend.show_html_file.Params
 ---@field path string The fully qualified filesystem path to the HTML file to display
@@ -391,9 +377,7 @@ end
 ---@param kernel jet.Kernel
 ---@param comm_id string
 ---@param params jet.ark.comm.ui_frontend.show_html_file.Params
-M.show_html_file = function(kernel, comm_id, params)
-	return util.rpc_request(kernel, comm_id, "show_html_file", params)
-end
+M.show_html_file = function(kernel, comm_id, params) return util.rpc_request(kernel, comm_id, "show_html_file", params) end
 
 ---@class jet.ark.comm.ui_frontend.open_with_system.Params
 ---@field path string The file path to open with the system default application

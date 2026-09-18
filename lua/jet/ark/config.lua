@@ -22,15 +22,12 @@ M.options = nil
 ---@class jet.ark.data
 M.data = {
 	kernelspec_path = nil, ---@type string?
+	jet_nvim_required = "0.2.0",
 }
 
-M.load_data = function()
-	M.data.kernelspec_path = require("jet.core.kernelspec").make_path("ark")
-end
+M.load_data = function() M.data.kernelspec_path = require("jet.core.kernelspec").make_path("ark") end
 
-local is_executable = function(path)
-	return vim.fn.executable(vim.fs.normalize(path)) == 1
-end
+local is_executable = function(path) return vim.fn.executable(vim.fs.normalize(path)) == 1 end
 
 ---@param opts jet.ark.config
 ---@return jet.ark.config
