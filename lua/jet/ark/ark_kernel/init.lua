@@ -51,6 +51,7 @@ function ArkKernel:start_ark_lsp() lsp.start_ark_lsp(self) end
 function ArkKernel:stop_ark_lsp()
 	if self.ark_lsp_name then
 		vim.lsp.enable(self.ark_lsp_name, false)
+		---@diagnostic disable-next-line: inject-field
 		vim.lsp.config[self.ark_lsp_name] = {}
 	end
 end
