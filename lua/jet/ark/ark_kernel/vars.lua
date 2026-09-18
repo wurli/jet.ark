@@ -50,7 +50,7 @@ Vars.init = function(kernel)
 	vim.api.nvim_create_autocmd("WinResized", {
 		group = vim.api.nvim_create_augroup("ark." .. kernel.session_id, { clear = true }),
 		callback = function()
-			local win = out:win():winnr(out)
+			local win = out:win():winnr(out.buf)
 			if win then
 				local resized = vim.v.event.windows --[[@as integer[] ]]
 				for _, resized_win in ipairs(resized) do
@@ -399,7 +399,7 @@ function Vars:render()
 	local marks = {} ---@type ark.extmark_args[][]
 
 	local w = self:win()
-	local win = w and w:winnr(self)
+	local win = w and w:winnr(self.buf)
 	local win_width = win and vim.api.nvim_win_get_width(win) or math.floor(vim.o.columns / 2)
 
 	for _, v in ipairs(self.vars_flat) do
