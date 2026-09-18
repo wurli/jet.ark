@@ -57,7 +57,7 @@ T["Console resize is registered in R"] = function()
 
 	local initial_width = get_width()
 
-	child.api.nvim_win_resize(console_win, initial_width + 10, -1, {})
+	child.api.nvim_win_set_width(console_win, initial_width + 10)
 
 	local final_width = get_width()
 
