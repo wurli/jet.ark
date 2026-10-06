@@ -61,6 +61,7 @@ local function show_r_help(url, buf)
 			vim.bo[buf].modifiable = false
 
 			if vim.api.nvim_win_is_valid(M.help_win) then
+				vim.api.nvim_win_set_buf(M.help_win, buf)
 				vim.api.nvim_set_current_win(M.help_win)
 			else
 				M.help_win = vim.api.nvim_open_win(buf, true, {
