@@ -36,7 +36,7 @@ require("jet.ark").setup({
 })
 ```
 
-If you're using [lazy](https://github.com/folke/lazy.nvim), you might need to specify `main`.
+If you're using [lazy](https://github.com/folke/lazy.nvim) you might need to specify `main`:
 
 ```lua
 {
