@@ -36,6 +36,19 @@ require("jet.ark").setup({
 })
 ```
 
+If you're using [lazy](https://github.com/folke/lazy.nvim) you might need to specify `main`:
+
+```lua
+{
+	"wurli/jet.ark",
+	main = "jet.ark",
+	dependencies = { "jet.nvim" },
+	opts = {
+		ark_binary_path = "path-to-ark-binary",
+	},
+}
+```
+
 ## Keymaps
 
 See [jet.nvim](https://github.com/wurli/jet.nvim#keymaps) for advice on
